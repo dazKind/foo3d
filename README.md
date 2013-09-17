@@ -34,6 +34,7 @@ Foo3D doesnt make any assumptions about your project-setup. All it needs is a 3D
 
 #### Samples:
 
-##### 06-Openfl - Openfl SimpleOpenglView + foo3D
-![Openfl](http://developium.net/projects/foo3d/06-Openfl/s_200.jpg)
-* See the sample live: [html5](http://developium.net/projects/foo3d/05-Glow/js)
+> ##### 06-Openfl - Openfl SimpleOpenglView + foo3D
+> ![Openfl](http://developium.net/projects/foo3d/06-Openfl/s_200.jpg)
+> * See the sample live: [html5](http://developium.net/projects/foo3d/05-Glow/js)
+> * See the code: [code](https://github.com/dazKind/foo3D/blob/master/1%2C0%2C0/samples/06-Openfl/Source/Main.hx)
