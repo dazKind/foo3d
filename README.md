@@ -28,6 +28,7 @@ Foo3D doesnt make any assumptions about your project-setup. All it needs is a 3D
 * cpp (windows-x86 & ogl)
 
 #### Notes:
+* the html5-target has no longer a dependency on the xirsys/stdjs lib!
 * Make sure you got foo3d.ndll in your path/sample-folders. It's compiled via hxcpp. Check the content of the "native-bindings"-folder.
 * Foo3D uses GLUT for the optional creation of the window and the context. Make sure you got glut32.dll in your path if you use the Frame-Class(like most of the samples).
 * On older systems Webgl can be blacklisted in your browser. Try setting "webgl.force-enabled;true" via "about:config".
@@ -36,7 +37,7 @@ Foo3D doesnt make any assumptions about your project-setup. All it needs is a 3D
 
 ##### 06-Openfl - "Openfl SimpleOpenglView + foo3D"
 > ![Openfl](http://developium.net/projects/foo3d/06-Openfl/s_200.jpg)
-> * See the sample live: [html5](http://developium.net/projects/foo3d/05-Glow/js)
+> * See the sample live: [html5](http://developium.net/projects/foo3d/06-Openfl/Export/html5/bin)
 > * See the code: [code](https://github.com/dazKind/foo3D/blob/master/1%2C0%2C0/samples/06-Openfl/Source/Main.hx)
 
 ##### 05-Glow - "Post-process glow via FBOs"
