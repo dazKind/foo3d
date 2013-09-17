@@ -48,3 +48,8 @@ Foo3D doesnt make any assumptions about your project-setup. All it needs is a 3D
 > ![Md2](http://developium.net/projects/foo3d/04-Md2/s_200.jpg)
 > * See the sample live: [html5](http://developium.net/projects/foo3d/04-Md2/js) | [flash](http://developium.net/projects/foo3d/04-Md2/swf)
 > * See the code: [code](https://github.com/dazKind/foo3D/blob/master/1%2C0%2C0/samples/04-Md2/Sample.hx)
+
+##### 03-Skybox - "Skybox-Cubemap":
+> ![Skybox](http://developium.net/projects/foo3d/03-Skybox/s_200.jpg)
+> * See the sample live: [html5](http://developium.net/projects/foo3d/03-Skybox/js) | [flash](http://developium.net/projects/foo3d/03-Skybox/swf)
+> * See the code: [code](https://github.com/dazKind/foo3D/blob/master/1%2C0%2C0/samples/03-Skybox/Sample.hx)
