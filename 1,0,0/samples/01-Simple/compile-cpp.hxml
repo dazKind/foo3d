@@ -1,0 +1,5 @@
+-main Sample
+-cp ../Common
+-cpp cpp
+-lib foo3D
+-D HXCPP_FLOAT32

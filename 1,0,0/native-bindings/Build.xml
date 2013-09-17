@@ -1,0 +1,93 @@
+<xml>
+
+    <!-- WARNING: The library will require msvcr100.dll at runtime. -->
+    <!--<set name="ABI" value="/MD" if="windows"/>-->
+
+    <!-- Install hxcpp and run with 'haxelib run hxcpp Build.xml' -->
+
+    <include name="${HXCPP}/build-tool/BuildCommon.xml"/>
+
+    <!-- Determine the output location for the NDLL -->
+
+    <set name="LIB_DIR" value="-L" unless="windows"/>
+    <set name="LIB_DIR" value="-libpath:" if="windows"/>
+    <section if="linux">
+        <set name="LIB_PLATFORM" value="linux"/>
+        <set name="LIB_CPU_TYPE" value="x86" unless="HXCPP_M64"/>
+        <set name="LIB_CPU_TYPE" value="x64" if="HXCPP_M64"/>
+    </section>
+    <section if="windows">
+        <set name="LIB_PLATFORM" value="windows"/>
+        <set name="LIB_CPU_TYPE" value="x86" unless="HXCPP_M64"/>
+        <set name="LIB_CPU_TYPE" value="x64" if="HXCPP_M64"/>
+    </section>
+
+    <set name="LIB_SUFFIX" value="${LIB_PLATFORM}-${LIB_CPU_TYPE}"/>
+
+    <!-- Specify the list of files to be compiled and the compile options. -->
+
+    <set name="FOO3D_DIR" value="../../"/>
+
+    <files id="common">
+    </files>
+
+    <files id="foo3D">
+        <compilerflag value="-I${FOO3D_DIR}/native-bindings/src"/>
+        <compilerflag value="-Iinclude"/>
+        <compilerflag value="-DWIN32" if="windows"/>
+        <compilerflag value="-DHXCPP_FLOAT32"/>
+        <compilerflag value="-DGLEW_STATIC" if="windows"/>
+        <compilerflag value="-std=c++0x" if="linux"/>
+        <file name="src/Foo3D.cpp"/>
+    </files>
+
+    <files id="frame">
+        <compilerflag value="-I${FOO3D_DIR}/native-bindings/src"/>
+        <compilerflag value="-Iinclude"/>
+        <compilerflag value="-DWIN32" if="windows"/>
+        <compilerflag value="-DHXCPP_FLOAT32"/>
+        <compilerflag value="-std=c++0x" if="linux"/>
+        <file name="src/Frame.cpp"/>
+    </files>
+
+    <!-- Generate the NDLL. -->
+
+    <set name="configuration_type" value="dll" unless="iphone"/>
+    <set name="configuration_type" value="static_link" if="iphone"/>
+
+    <target id="foo3d-hx" output="foo3d" tool="linker" toolid="${configuration_type}">
+
+        <libdir name="obj/lib"/>
+        <outdir name="platforms/${LIB_SUFFIX}"/>
+        <ext value=".so" if="android"/>
+        <ext value=".ndll" if="linux"/>
+        <ext value=".ndll" if="windows"/>
+
+        <files id="common"/>
+        <files id="foo3D"/>
+        <files id="frame"/>
+        
+        <!---------------------->
+        <!-- System libraries -->
+        <!---------------------->
+
+        <lib name="-ldl" if="linux"/>
+        <lib name="-lGL" if="linux"/>
+        <lib name="-lpthread" if="linux"/>
+        <lib name="-lrt" if="linux"/>
+        <lib name="-lX11" if="linux"/>
+
+        <lib name="kernel32.lib" if="windows"/>
+        <lib name="gdi32.lib" if="windows"/>
+        <lib name="advapi32.lib" if="windows"/>
+        <lib name="shell32.lib" if="windows"/>
+        <lib name="user32.lib" if="windows"/>
+        
+        <lib name="opengl32.lib" if="windows"/>        
+        <lib name="glew32s.lib" if="windows"/>
+    </target>
+
+    <target id="default">
+        <target id="foo3d-hx"/>
+    </target>
+</xml>

@@ -1,0 +1,19 @@
+-main ApplicationMain 
+-lib openfl
+-lib openfl-html5
+-lib foo3d
+-lib format
+-cp Source
+-cp ../Common
+-D tools=1
+-D openfl_ver=1.0.10
+-D openfl
+-D HXCPP_FLOAT32
+-D html5
+-D web
+-js Export/html5/bin/SimpleOpenGLView.js
+-cp Export/html5/haxe
+-D html5
+-D html
+--remap flash:flash
+-debug

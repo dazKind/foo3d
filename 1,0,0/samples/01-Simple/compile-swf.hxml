@@ -1,0 +1,6 @@
+-main Sample
+-cp ../Common
+-swf-version 11
+-swf swf/Sample.swf
+-swf-header 800:600:60:ccccff
+-lib foo3D

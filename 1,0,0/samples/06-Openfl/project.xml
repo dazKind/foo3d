@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+	
+	<meta title="Simple OpenGLView + Foo3D" package="org.openfl.samples.simpleopenglview" version="1.0.0" company="OpenFL Technologies" />
+	<app main="Main" path="Export" file="SimpleOpenGLView" />
+
+	<window fps="300" hardware="true" allow-shaders="true" require-shaders="true" depth-buffer="true" stencil-buffer="true" />
+
+	<haxedef name="HXCPP_FLOAT32" />
+
+	<source path="Source" />
+	<source path="../Common" />
+	
+	<haxelib name="openfl" />
+	<haxelib name="foo3d" />
+	<haxelib name="format" />
+	
+	<assets path="Assets" rename="assets" exclude="*.svg" />
+	<icon path="Assets/openfl.svg" />
+
+	<assets path="../Common/resources" rename="resources" include="*.png|*.md2" />
+	
+</project>

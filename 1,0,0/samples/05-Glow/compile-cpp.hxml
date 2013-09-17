@@ -1,0 +1,7 @@
+-main Sample
+-cp ../Common
+-cpp cpp
+-lib foo3D
+-lib format
+-D HXCPP_FLOAT32
+-resource ../Common/resources/tekkblade.md2@blade_md2
