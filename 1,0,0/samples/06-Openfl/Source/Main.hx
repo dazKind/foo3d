@@ -13,12 +13,12 @@ import foo3D.RenderContext;
 
 class Main extends Sprite {
 
-	private var view:OpenGLView;
+    private var view:OpenGLView;
 
-	static var rd:RenderDevice;
-	static var base:SampleBase;
-	
-	static var playAnimation:Bool;
+    static var rd:RenderDevice;
+    static var base:SampleBase;
+    
+    static var playAnimation:Bool;
     static var showGlow:Bool;
     static var curFrame:Int = 0;    
     static var nextFrame:Int = 1;
@@ -53,35 +53,35 @@ class Main extends Sprite {
     // draw the blurred glowmap on a quad into the backbuffer
     static var blurProg:Int;
     static var blurLocs:Map<String, UniformLocationType>;
-	
-	
-	public function new () {
-		
-		super ();		
-		
-		if (OpenGLView.isSupported) {
+    
+    
+    public function new () {
+        
+        super ();       
+        
+        if (OpenGLView.isSupported) {
 
-			showGlow = true;
-        	playAnimation = false;
-			
-			view = new OpenGLView ();
-			view.addEventListener(OpenGLView.CONTEXT_LOST, onCtxLost);
-			view.addEventListener(OpenGLView.CONTEXT_RESTORED, onCtxCreated);
+            showGlow = true;
+            playAnimation = false;
+            
+            view = new OpenGLView ();
+            view.addEventListener(OpenGLView.CONTEXT_LOST, onCtxLost);
+            view.addEventListener(OpenGLView.CONTEXT_RESTORED, onCtxCreated);
 
-			onCtxCreated(null);
+            onCtxCreated(null);
 
-			view.render = renderView;
-			addChild (view);
-		}
-		
+            view.render = renderView;
+            addChild (view);
+        }
+        
 
-		addChild(new openfl.display.FPS(10, 10, 0xFFFFFF));
-	
-	}
-	
-	private static function onCtxCreated(_evt:Dynamic):Void {
+        addChild(new openfl.display.FPS(10, 10, 0xFFFFFF));
+    
+    }
+    
+    private static function onCtxCreated(_evt:Dynamic):Void {
 
-		// create device and basic settings
+        // create device and basic settings
         rd = new RenderDevice(#if html5 GL.nmeContext #else null #end);
         rd.setViewport(0, 0, 800, 600);
         rd.setScissorRect(0, 0, 800, 600);
@@ -138,9 +138,9 @@ class Main extends Sprite {
 
         glowSceneFBO = rd.createRenderBuffer(512, 512, RDITextureFormats.RGBA8, true, 1, 0);
         glowBlurFBO = rd.createRenderBuffer(512, 512, RDITextureFormats.RGBA8, true, 1, 0);
-	}
+    }
 
-	private static function onCtxLost(_evt:Dynamic):Void
+    private static function onCtxLost(_evt:Dynamic):Void
     {
         base.cleanUpDefaults(rd);
 
@@ -160,20 +160,20 @@ class Main extends Sprite {
         rd.destroyRenderBuffer(glowBlurFBO);
     }
 
-	static var time:Float = haxe.Timer.stamp();
+    static var time:Float = haxe.Timer.stamp();
     static var deltaTime:Float;
-	static var rot:Float = 0;
+    static var rot:Float = 0;
     static var fpsTimer:Float = 0;
     static var animFPS:Float = 0.25;    
     static var scrollTimer:Float = 0;
     static var scrollFPS:Float = 1.0;
 
-	private function renderView (rect:Rectangle):Void {
+    private function renderView (rect:Rectangle):Void {
 
-		var curTime = (haxe.Timer.stamp());
+        var curTime = (haxe.Timer.stamp());
         deltaTime = curTime - time;
 
-		// rotate the model
+        // rotate the model
         rot += 10 * deltaTime;
         mWorldMat.recompose(
             math.Quat.rotateY(rot),
@@ -276,20 +276,20 @@ class Main extends Sprite {
         }
 
 #if cpp 
-		// we need to clean up the state when running natively so the displaylist can render correctly
+        // we need to clean up the state when running natively so the displaylist can render correctly
         rd.setCullMode(RDICullModes.NONE);
         rd.setDepthFunc();
         rd.setBlendFunc(RDIBlendFactors.SRC_ALPHA, RDIBlendFactors.ONE_MINUS_SRC_ALPHA);
         rd.commitStates();
 
-		foo3D.impl.OpenGLRenderDevice.hx_gl_bindBuffer(RDIBufferType.VERTEX, null);
-		foo3D.impl.OpenGLRenderDevice.hx_gl_bindBuffer(RDIBufferType.INDEX, null);
+        foo3D.impl.OpenGLRenderDevice.hx_gl_bindBuffer(RDIBufferType.VERTEX, null);
+        foo3D.impl.OpenGLRenderDevice.hx_gl_bindBuffer(RDIBufferType.INDEX, null);
 #end
 
         time = curTime;
-	}
+    }
 
-	static function processMd2(_id:String):Void
+    static function processMd2(_id:String):Void
     {
         // parse the modeldata
         md2 = Md2Parser.run(ByteArrayTools.toBytes(openfl.Assets.getBytes(_id)));
@@ -341,6 +341,6 @@ class Main extends Sprite {
         md2UvBuf = rd.createVertexBuffer(uv.length, uv, RDIBufferUsage.STATIC, 2);
         md2IBuf = rd.createIndexBuffer(ind.length, ind, RDIBufferUsage.STATIC);
     }
-	
-	
+    
+    
 }
