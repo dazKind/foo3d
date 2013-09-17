@@ -34,7 +34,7 @@ Foo3D doesnt make any assumptions about your project-setup. All it needs is a 3D
 
 #### Samples:
 
-##### 06-Openfl - Openfl SimpleOpenglView + foo3D
+##### 06-Openfl - "Openfl SimpleOpenglView + foo3D"
 > ![Openfl](http://developium.net/projects/foo3d/06-Openfl/s_200.jpg)
 > * See the sample live: [html5](http://developium.net/projects/foo3d/05-Glow/js)
 > * See the code: [code](https://github.com/dazKind/foo3D/blob/master/1%2C0%2C0/samples/06-Openfl/Source/Main.hx)
@@ -49,7 +49,17 @@ Foo3D doesnt make any assumptions about your project-setup. All it needs is a 3D
 > * See the sample live: [html5](http://developium.net/projects/foo3d/04-Md2/js) | [flash](http://developium.net/projects/foo3d/04-Md2/swf)
 > * See the code: [code](https://github.com/dazKind/foo3D/blob/master/1%2C0%2C0/samples/04-Md2/Sample.hx)
 
-##### 03-Skybox - "Skybox-Cubemap":
+##### 03-Skybox - "Skybox-Cubemap"
 > ![Skybox](http://developium.net/projects/foo3d/03-Skybox/s_200.jpg)
 > * See the sample live: [html5](http://developium.net/projects/foo3d/03-Skybox/js) | [flash](http://developium.net/projects/foo3d/03-Skybox/swf)
 > * See the code: [code](https://github.com/dazKind/foo3D/blob/master/1%2C0%2C0/samples/03-Skybox/Sample.hx)
+
+##### 02-Simple - "Textures"
+> ![Textures](http://developium.net/projects/foo3d/02-Simple/s_200.jpg)
+> * See the sample live: [html5](http://developium.net/projects/foo3d/02-Simple/js) | [flash](http://developium.net/projects/foo3d/02-Simple/swf)
+> * See the code: [code](https://github.com/dazKind/foo3D/blob/master/1%2C0%2C0/samples/02-Simple/Sample.hx)
+
+##### 01-Simple - "Green quad on a blue background"
+> ![Textures](http://developium.net/projects/foo3d/01-Simple/s_200.jpg)
+> * See the sample live: [html5](http://developium.net/projects/foo3d/01-Simple/js) | [flash](http://developium.net/projects/foo3d/01-Simple/swf)
+> * See the code: [code](https://github.com/dazKind/foo3D/blob/master/1%2C0%2C0/samples/01-Simple/Sample.hx)
