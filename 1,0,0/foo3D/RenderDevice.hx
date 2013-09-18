@@ -16,7 +16,7 @@ typedef PixelData = Dynamic;
 
 typedef RenderDevice = foo3D.impl.WebGLRenderDevice;
 
-#elseif (flash || nme)
+#elseif (flash)
 
 import flash.display3D.Context3DTextureFormat;
 import flash.display3D.VertexBuffer3D;

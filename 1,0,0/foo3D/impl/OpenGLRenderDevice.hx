@@ -819,6 +819,11 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
         commitStates();
     }
 
+    override public function isLost():Bool 
+    {
+        return false;
+    }
+
     override public function clear(_flags:Int, ?_r:Float = 0, ?_g:Float = 0, ?_b:Float = 0, ?_a:Float = 1, ?_depth:Float = 1):Void
     {
         var mask:Int = 0;
