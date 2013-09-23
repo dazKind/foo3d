@@ -771,7 +771,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
     override public function draw(_primType:Int, _numInds:Int, _offset:Int):Void
     {
         if (commitStates())
-            m_ctx.drawElements(_primType, _numInds, RenderContext.UNSIGNED_SHORT, _offset);
+            m_ctx.drawElements(_primType, _numInds, RenderContext.UNSIGNED_SHORT, _offset*2);
     }
 
     override public function drawArrays(_primType:Int, _offset:Int, _size:Int):Void

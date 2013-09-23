@@ -183,8 +183,9 @@ class RDIBufferUsage
 
 class RDIBufferType
 {
-    inline public static var VERTEX:Int     = 0x8892;
-    inline public static var INDEX:Int      = 0x8893;
+    inline public static var VERTEX:Int         = 0x8892;
+    inline public static var INDEX:Int          = 0x8893;
+    inline public static var ARRAY_BUFFER:Int   = 0x8892;
 }
 
 class RDIBuffer
@@ -289,8 +290,8 @@ class RDIShaderConstType
     inline public static var FLOAT2:Int = 0x8B50;
     inline public static var FLOAT3:Int = 0x8B51;
     inline public static var FLOAT4:Int = 0x8B52;
-    inline public static var FLOAT44:Int = 0x8B5B;
-    inline public static var FLOAT33:Int = 0x8B5C;
+    inline public static var FLOAT33:Int = 0x8B5B;
+    inline public static var FLOAT44:Int = 0x8B5C;
     inline public static var SAMPLER_2D:Int = 0x8B5E;
     inline public static var SAMPLER_CUBE:Int = 0x8B60;
 }
@@ -475,6 +476,7 @@ class RDIIndexFormat
 
 class RDIPrimType
 {
+    inline public static var LINES:Int = 0x0001;
     inline public static var TRIANGLES:Int = 0x0004;
     inline public static var TRISTRIP:Int = 0x0005;
 }
@@ -624,7 +626,7 @@ class AbstractRenderDevice
     
     function init():Void
     {
-        throw "NOT IMPLENTED";
+        throw "NOT IMPLEMENTED";
     }
 
     //=============================================================================
@@ -649,7 +651,7 @@ class AbstractRenderDevice
     // textures
     //=============================================================================
     public function createTexture(_type:Int, _width:Int, _height:Int, _format:Int, _hasMips:Bool, _genMips:Bool, ?_hintIsRenderTarget=false):Int { throw "NOT IMPLEMENTED"; return 0; }
-    public function uploadTextureData(_handle:Int, _slice:Int, _mipLevel:Int, _pixels:PixelData):Void { throw "NOT IMPLENTED"; }
+    public function uploadTextureData(_handle:Int, _slice:Int, _mipLevel:Int, _pixels:PixelData):Void { throw "NOT IMPLEMENTED"; }
     public function destroyTexture(_handle:Int):Void { throw "NOT IMPLEMENTED"; }
     public function calcTextureSize(_format:Int, _width:Int, _height:Int):Int
     {
@@ -666,41 +668,41 @@ class AbstractRenderDevice
     //=============================================================================
     // shader programs
     //=============================================================================
-    public function createProgram(_vertexShaderSrc:String, _fragmentShaderSrc:String):Int { throw "NOT IMPLENTED"; return 0; }
-    public function destroyProgram(_handle:Int):Void { throw "NOT IMPLENTED"; }
-    public function bindProgram(_handle:Int):Void { throw "NOT IMPLENTED"; }
-    public function getActiveUniformCount(_handle:Int):Int { throw "NOT IMPLENTED"; return 0; }
-    public function getActiveUniformInfo(_handle:Int, _index:Int):RDIUniformInfo { throw "NOT IMPLENTED"; return null; }
-    public function getUniformLoc(_handle:Int, _name:String):UniformLocationType { throw "NOT IMPLENTED"; return null; }
-    public function getSamplerLoc(_handle:Int, _name:String):UniformLocationType { throw "NOT IMPLENTED"; return null; }
-    public function setUniform(_loc:UniformLocationType, _type:Int, _values:Array<Float>):Void { throw "NOT IMPLENTED"; }
-    public function setSampler(_loc:UniformLocationType, _texUnit:Int):Void { throw "NOT IMPLENTED"; }
+    public function createProgram(_vertexShaderSrc:String, _fragmentShaderSrc:String):Int { throw "NOT IMPLEMENTED"; return 0; }
+    public function destroyProgram(_handle:Int):Void { throw "NOT IMPLEMENTED"; }
+    public function bindProgram(_handle:Int):Void { throw "NOT IMPLEMENTED"; }
+    public function getActiveUniformCount(_handle:Int):Int { throw "NOT IMPLEMENTED"; return 0; }
+    public function getActiveUniformInfo(_handle:Int, _index:Int):RDIUniformInfo { throw "NOT IMPLEMENTED"; return null; }
+    public function getUniformLoc(_handle:Int, _name:String):UniformLocationType { throw "NOT IMPLEMENTED"; return null; }
+    public function getSamplerLoc(_handle:Int, _name:String):UniformLocationType { throw "NOT IMPLEMENTED"; return null; }
+    public function setUniform(_loc:UniformLocationType, _type:Int, _values:Array<Float>):Void { throw "NOT IMPLEMENTED"; }
+    public function setSampler(_loc:UniformLocationType, _texUnit:Int):Void { throw "NOT IMPLEMENTED"; }
 
     //=============================================================================
     // renderbuffers
     //=============================================================================
-    public function createRenderBuffer(_width:Int, _height:Int, _format:Int, _depth:Bool, ?_numColBufs:Int=1, ?_samples:Int = 0):Int { throw "NOT IMPLENTED"; return 0; }
-    public function destroyRenderBuffer(_handle:Int):Void { throw "NOT IMPLENTED"; }
-    public function getRenderBufferTex(_handle:Int, ?_bufIndex:Int=0):Int { throw "NOT IMPLENTED"; return 0; }
-    public function bindRenderBuffer(_handle:Int):Void { throw "NOT IMPLENTED"; }
-    public function getRenderBufferData(_handle:Int, ?_bufIndex:Int=0):RDIRenderBufferData { throw "NOT IMPLENTED"; return null; }
+    public function createRenderBuffer(_width:Int, _height:Int, _format:Int, _depth:Bool, ?_numColBufs:Int=1, ?_samples:Int = 0):Int { throw "NOT IMPLEMENTED"; return 0; }
+    public function destroyRenderBuffer(_handle:Int):Void { throw "NOT IMPLEMENTED"; }
+    public function getRenderBufferTex(_handle:Int, ?_bufIndex:Int=0):Int { throw "NOT IMPLEMENTED"; return 0; }
+    public function bindRenderBuffer(_handle:Int):Void { throw "NOT IMPLEMENTED"; }
+    public function getRenderBufferData(_handle:Int, ?_bufIndex:Int=0):RDIRenderBufferData { throw "NOT IMPLEMENTED"; return null; }
 
     //=============================================================================
     // state handling
     //=============================================================================
-    public function commitStates(?_filter=0xFFFFFFFF):Bool { throw "NOT IMPLENTED"; return false; }
-    public function resetStates():Void { throw "NOT IMPLENTED"; }
-    public function isLost():Bool { throw "NOT IMPLENTED"; return true; }
+    public function commitStates(?_filter=0xFFFFFFFF):Bool { throw "NOT IMPLEMENTED"; return false; }
+    public function resetStates():Void { throw "NOT IMPLEMENTED"; }
+    public function isLost():Bool { throw "NOT IMPLEMENTED"; return true; }
 
-    function applyVertexLayout():Bool { throw "NOT IMPLENTED"; return false; }
-    function applySamplerState(_tex:RDITexture):Void { throw "NOT IMPLENTED"; }
+    function applyVertexLayout():Bool { throw "NOT IMPLEMENTED"; return false; }
+    function applySamplerState(_tex:RDITexture):Void { throw "NOT IMPLEMENTED"; }
 
     //=============================================================================
     // drawcalls and clears
     //=============================================================================
-    public function clear(_flags:Int, ?_r:Float = 0, ?_g:Float = 0, ?_b:Float = 0, ?_a:Float = 1, ?_depth:Float = 1):Void { throw "NOT IMPLENTED"; }
-    public function draw(_primType:Int, _numInds:Int, _offset:Int):Void { throw "NOT IMPLENTED"; }
-    public function drawArrays(_primType:Int, _offset:Int, _size:Int):Void { throw "NOT IMPLENTED"; }
+    public function clear(_flags:Int, ?_r:Float = 0, ?_g:Float = 0, ?_b:Float = 0, ?_a:Float = 1, ?_depth:Float = 1):Void { throw "NOT IMPLEMENTED"; }
+    public function draw(_primType:Int, _numInds:Int, _offset:Int):Void { throw "NOT IMPLEMENTED"; }
+    public function drawArrays(_primType:Int, _offset:Int, _size:Int):Void { throw "NOT IMPLEMENTED"; }
 
     //=============================================================================
     // commands
