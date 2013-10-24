@@ -183,9 +183,8 @@ class RDIBufferUsage
 
 class RDIBufferType
 {
-    inline public static var VERTEX:Int         = 0x8892;
-    inline public static var INDEX:Int          = 0x8893;
-    inline public static var ARRAY_BUFFER:Int   = 0x8892;
+    inline public static var VERTEX:Int     = 0x8892;
+    inline public static var INDEX:Int      = 0x8893;
 }
 
 class RDIBuffer
@@ -719,6 +718,9 @@ class AbstractRenderDevice
     // state handling
     //=============================================================================
     public function commitStates(?_filter=0xFFFFFFFF):Bool { throw "NOT IMPLEMENTED"; return false; }
+    public function resetStates():Void { throw "NOT IMPLENTED"; }
+    public function isLost():Bool { throw "NOT IMPLENTED"; return true; }
+    public function resetStates():Void { throw "NOT IMPLEMENTED"; }
     public function resetStates():Void { 
         m_curIndexBuf = 1;
         m_newIndexBuf = 0;
