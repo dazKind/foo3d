@@ -35,7 +35,7 @@
         <compilerflag value="-I${FOO3D_DIR}/native-bindings/src"/>
         <compilerflag value="-Iinclude"/>
         <compilerflag value="-DWIN32" if="windows"/>
-        <compilerflag value="-DHXCPP_FLOAT32"/>
+        <compilerflag value="-DHXCPP_FLOAT32"/><!-- important for data transfers! -->
         <compilerflag value="-DGLEW_STATIC" if="windows"/>
         <compilerflag value="-std=c++0x" if="linux"/>
         <file name="src/Foo3D.cpp"/>
@@ -45,7 +45,7 @@
         <compilerflag value="-I${FOO3D_DIR}/native-bindings/src"/>
         <compilerflag value="-Iinclude"/>
         <compilerflag value="-DWIN32" if="windows"/>
-        <compilerflag value="-DHXCPP_FLOAT32"/>
+        <compilerflag value="-DHXCPP_FLOAT32"/><!-- important for data transfers! -->
         <compilerflag value="-std=c++0x" if="linux"/>
         <file name="src/Frame.cpp"/>
     </files>

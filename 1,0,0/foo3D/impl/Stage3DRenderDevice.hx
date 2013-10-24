@@ -604,24 +604,6 @@ class Stage3DRenderDevice extends AbstractRenderDevice
                 m_pendingMask &= ~ARD.PM_DEPTH_TEST;
             }
 
-            // Bind index buffer
-            if ((mask & ARD.PM_INDEXBUF) == ARD.PM_INDEXBUF)
-            {
-                if (m_newIndexBuf != m_curIndexBuf)
-                    m_curIndexBuf = m_newIndexBuf;
-                m_pendingMask &= ~ARD.PM_INDEXBUF;
-            }
-
-            // Bind vertex buffers
-            if ((mask & ARD.PM_VERTLAYOUT) == ARD.PM_VERTLAYOUT)
-            {
-                if (!applyVertexLayout())
-                    return false;
-
-                m_prevShaderId = m_curShaderId;
-                m_pendingMask &= ~ARD.PM_VERTLAYOUT;
-            }
-
             // set blending
             if((mask & ARD.PM_BLEND) == ARD.PM_BLEND)
             {
@@ -659,7 +641,23 @@ class Stage3DRenderDevice extends AbstractRenderDevice
                 m_pendingMask &= ~ARD.PM_TEXTURES;
             }
 
-            m_ctx.setCulling(untyped "none");
+            // Bind index buffer
+            if ((mask & ARD.PM_INDEXBUF) == ARD.PM_INDEXBUF)
+            {
+                if (m_newIndexBuf != m_curIndexBuf)
+                    m_curIndexBuf = m_newIndexBuf;
+                m_pendingMask &= ~ARD.PM_INDEXBUF;
+            }
+
+            // Bind vertex buffers
+            if ((mask & ARD.PM_VERTLAYOUT) == ARD.PM_VERTLAYOUT)
+            {
+                if (!applyVertexLayout())
+                    return false;
+
+                m_prevShaderId = m_curShaderId;
+                m_pendingMask &= ~ARD.PM_VERTLAYOUT;
+            }
         }
         return true;
     }
@@ -691,33 +689,6 @@ class Stage3DRenderDevice extends AbstractRenderDevice
                 res = Context3DBlendFactor.ONE_MINUS_DESTINATION_COLOR;
         }
         return res;
-    }
-
-    override public function resetStates():Void
-    {
-        m_curIndexBuf = 1;
-        m_newIndexBuf = 0;
-
-        m_curSrcFactor = RDIBlendFactors.ZERO;
-        m_newSrcFactor = RDIBlendFactors.ONE;
-
-        m_curDstFactor = RDIBlendFactors.ONE;
-        m_newDstFactor = RDIBlendFactors.ZERO;
-
-        m_curCullMode = RDICullModes.NONE;
-        m_newCullMode = RDICullModes.BACK;
-
-        m_depthTestEnabled = false;
-        m_curDepthTest = RDITestModes.GREATER;
-        m_newDepthTest = RDITestModes.LESS;
-
-        for (i in 0...16)
-            setTexture(i, 0, 0);
-
-        m_activeVertexAttribsMask = 0;
-
-        m_pendingMask = 0xFFFFFFFF;
-        commitStates();
     }
 
     override public function isLost():Bool 

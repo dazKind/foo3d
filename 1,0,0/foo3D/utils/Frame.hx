@@ -36,7 +36,7 @@ class Frame {
 	public static function requestContext(_config:RenderContextConfig) {
 #if js
 		var container = Browser.document.getElementById(_config.name);
-		var canvas:CanvasElement = cast(Browser.document.createElement("canvas"), CanvasElement);
+		var canvas:Dynamic = Browser.document.createElement("canvas");
 		canvas.width = _config.width;
 		canvas.height = _config.height;
 		container.appendChild(canvas);

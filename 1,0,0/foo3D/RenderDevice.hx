@@ -183,8 +183,9 @@ class RDIBufferUsage
 
 class RDIBufferType
 {
-    inline public static var VERTEX:Int     = 0x8892;
-    inline public static var INDEX:Int      = 0x8893;
+    inline public static var VERTEX:Int         = 0x8892;
+    inline public static var INDEX:Int          = 0x8893;
+    inline public static var ARRAY_BUFFER:Int   = 0x8892;
 }
 
 class RDIBuffer
@@ -289,8 +290,8 @@ class RDIShaderConstType
     inline public static var FLOAT2:Int = 0x8B50;
     inline public static var FLOAT3:Int = 0x8B51;
     inline public static var FLOAT4:Int = 0x8B52;
-    inline public static var FLOAT44:Int = 0x8B5B;
-    inline public static var FLOAT33:Int = 0x8B5C;
+    inline public static var FLOAT33:Int = 0x8B5B;
+    inline public static var FLOAT44:Int = 0x8B5C;
     inline public static var SAMPLER_2D:Int = 0x8B5E;
     inline public static var SAMPLER_CUBE:Int = 0x8B60;
 }
@@ -403,6 +404,18 @@ class RDISamplerState
     //inline public static var COMP_LEQUAL:Int       = 0x1000;
 }
 
+// ---------------------------------------------------------
+// Blendequation
+// ---------------------------------------------------------
+
+class RDIBlendEquationModes
+{
+    inline public static var ADD:Int = 0x8006;
+    inline public static var SUBTRACT:Int = 0x800A;
+    inline public static var REVERSE_SUBTRACT:Int = 0x800B;
+    inline public static var MIN:Int = 0x8007;
+    inline public static var MAX:Int = 0x8008;
+}
 
 // ---------------------------------------------------------
 // Blend Factors
@@ -475,8 +488,10 @@ class RDIIndexFormat
 
 class RDIPrimType
 {
+    inline public static var LINES:Int = 0x0001;
     inline public static var TRIANGLES:Int = 0x0004;
     inline public static var TRISTRIP:Int = 0x0005;
+    inline public static var QUADS:Int = 0x0007;
 }
 
 // =================================================================================================
@@ -496,14 +511,16 @@ class AbstractRenderDevice
     inline public static var SS_ADDR_START:Int = 6;
     inline public static var SS_ADDR_MASK:Int = RDISamplerState.ADDR_CLAMP | RDISamplerState.ADDR_WRAP | RDISamplerState.ADDR_MIRRORED_REPEAT;
     
-    inline public static var PM_VIEWPORT    = 0x00000001;
-    inline public static var PM_INDEXBUF    = 0x00000002;
-    inline public static var PM_VERTLAYOUT  = 0x00000004;
-    inline public static var PM_TEXTURES    = 0x00000008;
-    inline public static var PM_SCISSOR     = 0x00000010;
-    inline public static var PM_BLEND       = 0x00000020;
-    inline public static var PM_CULLMODE    = 0x00000040;
-    inline public static var PM_DEPTH_TEST  = 0x00000080;
+    inline public static var PM_VIEWPORT:Int    = (1 << 0);
+    inline public static var PM_INDEXBUF:Int    = (1 << 1);
+    inline public static var PM_VERTLAYOUT:Int  = (1 << 2);
+    inline public static var PM_TEXTURES:Int    = (1 << 3);
+    inline public static var PM_SCISSOR:Int     = (1 << 4);
+    inline public static var PM_BLEND:Int       = (1 << 5);
+    inline public static var PM_CULLMODE:Int    = (1 << 6);
+    inline public static var PM_DEPTH_TEST:Int  = (1 << 7);
+    inline public static var PM_BLEND_EQ:Int    = (1 << 8);
+    inline public static var PM_DEPTH_MASK:Int  = (1 << 9);
 
     public var m_ctx:RenderContext;
     var m_caps:RDIDeviceCaps;
@@ -527,6 +544,10 @@ class AbstractRenderDevice
     var m_curIndexBuf:Int;
     var m_newIndexBuf:Int;
 
+    var m_curBlendEq:Int;
+    var m_newBlendEq:Int;
+    var m_blendEqBuffer:Int;
+
     var m_curSrcFactor:Int;
     var m_newSrcFactor:Int;
 
@@ -535,6 +556,9 @@ class AbstractRenderDevice
 
     var m_curCullMode:Int;
     var m_newCullMode:Int;
+
+    var m_curDepthMask:Bool;
+    var m_newDepthMask:Bool;
 
     var m_depthTestEnabled:Bool;
     var m_curDepthTest:Int;
@@ -581,14 +605,20 @@ class AbstractRenderDevice
         m_curIndexBuf = 1;
         m_newIndexBuf = 0;
 
+        m_curBlendEq = RDIBlendEquationModes.SUBTRACT;
+        m_newBlendEq = RDIBlendEquationModes.ADD;
+        m_blendEqBuffer = -1;
+
         m_curSrcFactor = RDIBlendFactors.ZERO;
         m_newSrcFactor = RDIBlendFactors.ONE;
-
         m_curDstFactor = RDIBlendFactors.ONE;
         m_newDstFactor = RDIBlendFactors.ZERO;
 
         m_curCullMode = RDICullModes.NONE;
         m_newCullMode = RDICullModes.BACK;
+
+        m_curDepthMask = false;
+        m_newDepthMask = true;
 
         m_depthTestEnabled = false;
         m_curDepthTest = RDITestModes.GREATER;
@@ -624,7 +654,7 @@ class AbstractRenderDevice
     
     function init():Void
     {
-        throw "NOT IMPLENTED";
+        throw "NOT IMPLEMENTED";
     }
 
     //=============================================================================
@@ -637,7 +667,7 @@ class AbstractRenderDevice
     public function updateIndexBufferData(_handle:Int, _offset:Int, _size:Int, _data:IndexBufferData):Void { throw "NOT IMPLEMENTED"; }
     public function registerVertexLayout(_attribs:Array<RDIVertexLayoutAttrib>):Int
     {
-        if (m_numVertexLayouts == 16) return 0;
+        if (m_numVertexLayouts == 16) return 0; // TODO: WTF? does this make sense?
         m_vertexLayouts[m_numVertexLayouts].numAttribs = _attribs.length;
         for (i in 0..._attribs.length)
             m_vertexLayouts[m_numVertexLayouts].attribs[i] = _attribs[i];        
@@ -649,7 +679,7 @@ class AbstractRenderDevice
     // textures
     //=============================================================================
     public function createTexture(_type:Int, _width:Int, _height:Int, _format:Int, _hasMips:Bool, _genMips:Bool, ?_hintIsRenderTarget=false):Int { throw "NOT IMPLEMENTED"; return 0; }
-    public function uploadTextureData(_handle:Int, _slice:Int, _mipLevel:Int, _pixels:PixelData):Void { throw "NOT IMPLENTED"; }
+    public function uploadTextureData(_handle:Int, _slice:Int, _mipLevel:Int, _pixels:PixelData):Void { throw "NOT IMPLEMENTED"; }
     public function destroyTexture(_handle:Int):Void { throw "NOT IMPLEMENTED"; }
     public function calcTextureSize(_format:Int, _width:Int, _height:Int):Int
     {
@@ -666,41 +696,72 @@ class AbstractRenderDevice
     //=============================================================================
     // shader programs
     //=============================================================================
-    public function createProgram(_vertexShaderSrc:String, _fragmentShaderSrc:String):Int { throw "NOT IMPLENTED"; return 0; }
-    public function destroyProgram(_handle:Int):Void { throw "NOT IMPLENTED"; }
-    public function bindProgram(_handle:Int):Void { throw "NOT IMPLENTED"; }
-    public function getActiveUniformCount(_handle:Int):Int { throw "NOT IMPLENTED"; return 0; }
-    public function getActiveUniformInfo(_handle:Int, _index:Int):RDIUniformInfo { throw "NOT IMPLENTED"; return null; }
-    public function getUniformLoc(_handle:Int, _name:String):UniformLocationType { throw "NOT IMPLENTED"; return null; }
-    public function getSamplerLoc(_handle:Int, _name:String):UniformLocationType { throw "NOT IMPLENTED"; return null; }
-    public function setUniform(_loc:UniformLocationType, _type:Int, _values:Array<Float>):Void { throw "NOT IMPLENTED"; }
-    public function setSampler(_loc:UniformLocationType, _texUnit:Int):Void { throw "NOT IMPLENTED"; }
+    public function createProgram(_vertexShaderSrc:String, _fragmentShaderSrc:String):Int { throw "NOT IMPLEMENTED"; return 0; }
+    public function destroyProgram(_handle:Int):Void { throw "NOT IMPLEMENTED"; }
+    public function bindProgram(_handle:Int):Void { throw "NOT IMPLEMENTED"; }
+    public function getActiveUniformCount(_handle:Int):Int { throw "NOT IMPLEMENTED"; return 0; }
+    public function getActiveUniformInfo(_handle:Int, _index:Int):RDIUniformInfo { throw "NOT IMPLEMENTED"; return null; }
+    public function getUniformLoc(_handle:Int, _name:String):UniformLocationType { throw "NOT IMPLEMENTED"; return null; }
+    public function getSamplerLoc(_handle:Int, _name:String):UniformLocationType { throw "NOT IMPLEMENTED"; return null; }
+    public function setUniform(_loc:UniformLocationType, _type:Int, _values:Array<Float>):Void { throw "NOT IMPLEMENTED"; }
+    public function setSampler(_loc:UniformLocationType, _texUnit:Int):Void { throw "NOT IMPLEMENTED"; }
 
     //=============================================================================
     // renderbuffers
     //=============================================================================
-    public function createRenderBuffer(_width:Int, _height:Int, _format:Int, _depth:Bool, ?_numColBufs:Int=1, ?_samples:Int = 0):Int { throw "NOT IMPLENTED"; return 0; }
-    public function destroyRenderBuffer(_handle:Int):Void { throw "NOT IMPLENTED"; }
-    public function getRenderBufferTex(_handle:Int, ?_bufIndex:Int=0):Int { throw "NOT IMPLENTED"; return 0; }
-    public function bindRenderBuffer(_handle:Int):Void { throw "NOT IMPLENTED"; }
-    public function getRenderBufferData(_handle:Int, ?_bufIndex:Int=0):RDIRenderBufferData { throw "NOT IMPLENTED"; return null; }
+    public function createRenderBuffer(_width:Int, _height:Int, _format:Int, _depth:Bool, ?_numColBufs:Int=1, ?_samples:Int = 0):Int { throw "NOT IMPLEMENTED"; return 0; }
+    public function destroyRenderBuffer(_handle:Int):Void { throw "NOT IMPLEMENTED"; }
+    public function getRenderBufferTex(_handle:Int, ?_bufIndex:Int=0):Int { throw "NOT IMPLEMENTED"; return 0; }
+    public function bindRenderBuffer(_handle:Int):Void { throw "NOT IMPLEMENTED"; }
+    public function getRenderBufferData(_handle:Int, ?_bufIndex:Int=0):RDIRenderBufferData { throw "NOT IMPLEMENTED"; return null; }
 
     //=============================================================================
     // state handling
     //=============================================================================
-    public function commitStates(?_filter=0xFFFFFFFF):Bool { throw "NOT IMPLENTED"; return false; }
-    public function resetStates():Void { throw "NOT IMPLENTED"; }
-    public function isLost():Bool { throw "NOT IMPLENTED"; return true; }
+    public function commitStates(?_filter=0xFFFFFFFF):Bool { throw "NOT IMPLEMENTED"; return false; }
+    public function resetStates():Void { 
+        m_curIndexBuf = 1;
+        m_newIndexBuf = 0;
 
-    function applyVertexLayout():Bool { throw "NOT IMPLENTED"; return false; }
-    function applySamplerState(_tex:RDITexture):Void { throw "NOT IMPLENTED"; }
+        m_curBlendEq = RDIBlendEquationModes.SUBTRACT;
+        m_newBlendEq = RDIBlendEquationModes.ADD;
+        m_blendEqBuffer = -1;
+
+        m_curSrcFactor = RDIBlendFactors.ZERO;
+        m_newSrcFactor = RDIBlendFactors.ONE;
+
+        m_curDstFactor = RDIBlendFactors.ONE;
+        m_newDstFactor = RDIBlendFactors.ZERO;
+
+        m_curCullMode = RDICullModes.NONE;
+        m_newCullMode = RDICullModes.BACK;
+
+        m_curDepthMask = false;
+        m_newDepthMask = true;
+        
+        m_depthTestEnabled = false;
+        m_curDepthTest = RDITestModes.GREATER;
+        m_newDepthTest = RDITestModes.LESS;
+
+        for (i in 0...16)
+            setTexture(i, 0, 0);
+
+        m_activeVertexAttribsMask = 0;
+
+        m_pendingMask = 0xFFFFFFFF;
+        commitStates();
+    }
+    public function isLost():Bool { throw "NOT IMPLEMENTED"; return true; }
+
+    function applyVertexLayout():Bool { throw "NOT IMPLEMENTED"; return false; }
+    function applySamplerState(_tex:RDITexture):Void { throw "NOT IMPLEMENTED"; }
 
     //=============================================================================
     // drawcalls and clears
     //=============================================================================
-    public function clear(_flags:Int, ?_r:Float = 0, ?_g:Float = 0, ?_b:Float = 0, ?_a:Float = 1, ?_depth:Float = 1):Void { throw "NOT IMPLENTED"; }
-    public function draw(_primType:Int, _numInds:Int, _offset:Int):Void { throw "NOT IMPLENTED"; }
-    public function drawArrays(_primType:Int, _offset:Int, _size:Int):Void { throw "NOT IMPLENTED"; }
+    public function clear(_flags:Int, ?_r:Float = 0, ?_g:Float = 0, ?_b:Float = 0, ?_a:Float = 1, ?_depth:Float = 1):Void { throw "NOT IMPLEMENTED"; }
+    public function draw(_primType:Int, _numInds:Int, _offset:Int):Void { throw "NOT IMPLEMENTED"; }
+    public function drawArrays(_primType:Int, _offset:Int, _size:Int):Void { throw "NOT IMPLEMENTED"; }
 
     //=============================================================================
     // commands
@@ -736,6 +797,12 @@ class AbstractRenderDevice
         m_texSlots[_slot] = new RDITexSlot(_handle, _samplerState);
         m_pendingMask |= ARD.PM_TEXTURES;
     }
+    public function setBlendEquation(?_mode:Int=RDIBlendEquationModes.ADD, ?_bufIndex:Int=-1) 
+    {
+        m_newBlendEq = _mode;
+        m_blendEqBuffer = _bufIndex;
+        m_pendingMask |= ARD.PM_BLEND_EQ;
+    }
     public function setBlendFunc(?_srcFactor:Int=RDIBlendFactors.ONE, ?_dstFactor:Int=RDIBlendFactors.ZERO):Void 
     { 
         m_newSrcFactor = _srcFactor;
@@ -747,10 +814,17 @@ class AbstractRenderDevice
         m_newCullMode = _mode;
         m_pendingMask |= ARD.PM_CULLMODE;
     }
+    public function setDepthMask(_enable:Bool):Void {
+        m_newDepthMask = _enable;
+        m_pendingMask |= ARD.PM_DEPTH_MASK;
+    }
     public function setDepthFunc(_mode:Int=RDITestModes.LESS):Void
     {
         m_newDepthTest = _mode;
         m_pendingMask |= ARD.PM_DEPTH_TEST;
+    }
+    inline public function getDeviceCaps():RDIDeviceCaps {
+        return m_caps;
     }
 }
 

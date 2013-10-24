@@ -21,13 +21,6 @@ class WebGLRenderDevice extends AbstractRenderDevice
     
     override function init():Void
     {
-        /*
-        var supportedExtensions:Array<String> = m_ctx.getSupportedExtensions();
-        var e:String = "Supported Extensions:\n";
-        for (s in supportedExtensions)
-            e += s + "\n";
-        trace(e);
-        */
         m_caps.texFloatSupport = m_ctx.getExtension("OES_texture_float") == null ? false : true;
         m_caps.texNPOTSupport = true;
         m_caps.rtMultisampling = false;
@@ -39,6 +32,13 @@ class WebGLRenderDevice extends AbstractRenderDevice
         //m_ctx.pixelStorei(m_ctx.UNPACK_FLIP_Y_WEBGL, true);
 
         trace(m_caps.toString());
+
+        /**/
+        var supportedExtensions:Array<String> = m_ctx.getSupportedExtensions();
+        var e:String = "[Foo3D] - Supported extensions by browser:\n";
+        for (s in supportedExtensions)
+            e += s + "\n";
+        trace(e);
 
         resetStates();
     }
@@ -605,6 +605,16 @@ class WebGLRenderDevice extends AbstractRenderDevice
                 m_pendingMask &= ~ARD.PM_CULLMODE;
             }
 
+            // Depth Mask
+            if ((mask & ARD.PM_DEPTH_MASK) == ARD.PM_DEPTH_MASK) 
+            {
+                if (m_newDepthMask != m_curDepthMask) {
+                    m_ctx.depthMask(m_newDepthMask);
+                    m_curDepthMask = m_newDepthMask;
+                }
+                m_pendingMask &= ~ARD.PM_DEPTH_MASK;
+            }
+
             // Depth Test
             if ((mask & ARD.PM_DEPTH_TEST) == ARD.PM_DEPTH_TEST)
             {
@@ -635,28 +645,20 @@ class WebGLRenderDevice extends AbstractRenderDevice
                 m_pendingMask &= ~ARD.PM_DEPTH_TEST;
             }
 
-            // Bind index buffer
-            if ((mask & ARD.PM_INDEXBUF) == ARD.PM_INDEXBUF)
+            // set blendequation
+            if((mask & ARD.PM_BLEND_EQ) == ARD.PM_BLEND_EQ)
             {
-                if (m_newIndexBuf != m_curIndexBuf)
-                {
-                    if (m_newIndexBuf != 0)
-                        m_ctx.bindBuffer(RenderingContext.ELEMENT_ARRAY_BUFFER, m_buffers.getRef(m_newIndexBuf).glObj);
-                    else
-                        m_ctx.bindBuffer(RenderingContext.ELEMENT_ARRAY_BUFFER, null);
-                    
-                    m_curIndexBuf = m_newIndexBuf;
-                }
-                m_pendingMask &= ~ARD.PM_INDEXBUF;
-            }
+                if (m_newBlendEq != m_curBlendEq) {
 
-            // Bind vertex buffers
-            if ((mask & ARD.PM_VERTLAYOUT) == ARD.PM_VERTLAYOUT)
-            {
-                if (!applyVertexLayout())
-                    return false;
-                m_prevShaderId = m_curShaderId;
-                m_pendingMask &= ~ARD.PM_VERTLAYOUT;
+                    //if (m_blendEqBuffer != -1)
+                        //hx_gl_blendEquationBuffer(m_blendEqBuffer, m_newBlendEq);
+                    //else
+
+                    m_ctx.blendEquation(m_newBlendEq);
+                    m_curBlendEq = m_newBlendEq;
+                }
+
+                m_pendingMask &= ~ARD.PM_BLEND_EQ;
             }
 
             // set blending
@@ -705,38 +707,40 @@ class WebGLRenderDevice extends AbstractRenderDevice
 
                 m_pendingMask &= ~ARD.PM_TEXTURES;
             }
+
+            // Bind index buffer
+            if ((mask & ARD.PM_INDEXBUF) == ARD.PM_INDEXBUF)
+            {
+                if (m_newIndexBuf != m_curIndexBuf)
+                {
+                    if (m_newIndexBuf != 0)
+                        m_ctx.bindBuffer(RenderingContext.ELEMENT_ARRAY_BUFFER, m_buffers.getRef(m_newIndexBuf).glObj);
+                    else
+                        m_ctx.bindBuffer(RenderingContext.ELEMENT_ARRAY_BUFFER, null);
+                    
+                    m_curIndexBuf = m_newIndexBuf;
+                }
+                m_pendingMask &= ~ARD.PM_INDEXBUF;
+            }
+
+            // Bind vertex buffers
+            if ((mask & ARD.PM_VERTLAYOUT) == ARD.PM_VERTLAYOUT)
+            {
+                if (!applyVertexLayout())
+                    return false;
+                m_prevShaderId = m_curShaderId;
+                m_pendingMask &= ~ARD.PM_VERTLAYOUT;
+            }
         }
         return true;
     }
 
     override public function resetStates():Void
     {
-        m_curIndexBuf = 1; 
-        m_newIndexBuf = 0;
-
-        m_curSrcFactor = RDIBlendFactors.ZERO;
-        m_newSrcFactor = RDIBlendFactors.ONE;
-
-        m_curDstFactor = RDIBlendFactors.ONE;
-        m_newDstFactor = RDIBlendFactors.ZERO;
-
-        m_curCullMode = RDICullModes.NONE;
-        m_newCullMode = RDICullModes.BACK;
-
-        m_depthTestEnabled = false;
-        m_curDepthTest = RDITestModes.GREATER;
-        m_newDepthTest = RDITestModes.LESS;
-
-        for (i in 0...16)
-            setTexture(i, 0, 0);
-
-        m_activeVertexAttribsMask = 0;
-
         for (i in 0...m_caps.maxVertAttribs)
             m_ctx.disableVertexAttribArray(i);
 
-        m_pendingMask = 0xFFFFFFFF;
-        commitStates();
+        super.resetStates();
     }
 
     override public function isLost():Bool 
@@ -771,7 +775,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
     override public function draw(_primType:Int, _numInds:Int, _offset:Int):Void
     {
         if (commitStates())
-            m_ctx.drawElements(_primType, _numInds, RenderContext.UNSIGNED_SHORT, _offset);
+            m_ctx.drawElements(_primType, _numInds, RenderContext.UNSIGNED_SHORT, _offset*2);
     }
 
     override public function drawArrays(_primType:Int, _offset:Int, _size:Int):Void

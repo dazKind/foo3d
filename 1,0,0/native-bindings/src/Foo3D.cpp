@@ -527,4 +527,20 @@ namespace foo3D {
 		glBlitFramebuffer(0, 0, w, h, 0, 0, w, h, mask, GL_NEAREST);
 	}
 	DEFINE_PRIM(hx_gl_blitFramebuffer, 3);
+
+
+	void hx_gl_depthMask(value _flag) {
+		glDepthMask(val_int(_flag));
+	}
+	DEFINE_PRIM(hx_gl_depthMask, 1);
+
+	void hx_gl_blendEquation(value _mode) {
+		glBlendEquation(val_int(_mode));
+	}
+	DEFINE_PRIM(hx_gl_blendEquation, 1);
+
+	void hx_gl_blendEquationBuffer(value _buffer, value _mode) {
+		glBlendEquationi(val_int(_buffer), val_int(_mode));
+	}
+	DEFINE_PRIM(hx_gl_blendEquationBuffer, 2);
 }

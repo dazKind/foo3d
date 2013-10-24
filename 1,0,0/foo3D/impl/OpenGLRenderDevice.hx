@@ -701,8 +701,19 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
                 m_pendingMask &= ~ARD.PM_CULLMODE;
             }
 
+            // Depth Mask
+            if ((mask & ARD.PM_DEPTH_MASK) == ARD.PM_DEPTH_MASK) 
+            {
+                if (m_newDepthMask != m_curDepthMask) {
+                    hx_gl_depthMask(m_newDepthMask == true ? 1 : 0);
+                    m_curDepthMask = m_newDepthMask;
+                }
+                m_pendingMask &= ~ARD.PM_DEPTH_MASK;
+            }
+
             // Depth Test
-            if ((mask & ARD.PM_DEPTH_TEST) == ARD.PM_DEPTH_TEST) {
+            if ((mask & ARD.PM_DEPTH_TEST) == ARD.PM_DEPTH_TEST) 
+            {
                 if (m_newDepthTest != m_curDepthTest) {
                     if (m_newDepthTest == RDITestModes.DISABLE) {
                         if (m_depthTestEnabled) {
@@ -722,27 +733,20 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
                 m_pendingMask &= ~ARD.PM_DEPTH_TEST;
             }
 
-            // Bind index buffer
-            if ((mask & ARD.PM_INDEXBUF) == ARD.PM_INDEXBUF)
+            // set blendequation
+            if((mask & ARD.PM_BLEND_EQ) == ARD.PM_BLEND_EQ)
             {
-                if (m_newIndexBuf != m_curIndexBuf) {
-                    if (m_newIndexBuf != 0)
-                        hx_gl_bindBuffer(RDIBufferType.INDEX, m_buffers.getRef(m_newIndexBuf).glObj);
-                    else
-                        hx_gl_bindBuffer(RDIBufferType.INDEX, null);
-                    
-                    m_curIndexBuf = m_newIndexBuf;
-                }
-                m_pendingMask &= ~ARD.PM_INDEXBUF;
-            }
+                if (m_newBlendEq != m_curBlendEq) {
 
-            // Bind vertex buffers
-            if ((mask & ARD.PM_VERTLAYOUT) == ARD.PM_VERTLAYOUT)
-            {
-                if (!applyVertexLayout())
-                    return false;
-                m_prevShaderId = m_curShaderId;
-                m_pendingMask &= ~ARD.PM_VERTLAYOUT;
+                    if (m_blendEqBuffer != -1)
+                        hx_gl_blendEquationBuffer(m_blendEqBuffer, m_newBlendEq);
+                    else
+                        hx_gl_blendEquation(m_newBlendEq);
+
+                    m_curBlendEq = m_newBlendEq;
+                }
+
+                m_pendingMask &= ~ARD.PM_BLEND_EQ;
             }
 
             // set blending
@@ -763,7 +767,8 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
             }
 
             // Bind textures and set sampler state
-            if((mask & ARD.PM_TEXTURES) == ARD.PM_TEXTURES) {
+            if((mask & ARD.PM_TEXTURES) == ARD.PM_TEXTURES) 
+            {
                 for (i in 0...16) {
                     hx_gl_activeTexture(TEXTURE0+i);
 
@@ -784,39 +789,40 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
 
                 m_pendingMask &= ~ARD.PM_TEXTURES;
             }
+
+            // Bind index buffer
+            if ((mask & ARD.PM_INDEXBUF) == ARD.PM_INDEXBUF)
+            {
+                if (m_newIndexBuf != m_curIndexBuf) {
+                    if (m_newIndexBuf != 0)
+                        hx_gl_bindBuffer(RDIBufferType.INDEX, m_buffers.getRef(m_newIndexBuf).glObj);
+                    else
+                        hx_gl_bindBuffer(RDIBufferType.INDEX, null);
+                    
+                    m_curIndexBuf = m_newIndexBuf;
+                }
+                m_pendingMask &= ~ARD.PM_INDEXBUF;
+            }
+
+            // Bind vertex buffers
+            if ((mask & ARD.PM_VERTLAYOUT) == ARD.PM_VERTLAYOUT)
+            {
+                if (!applyVertexLayout()) {
+                    return false;
+                }
+                m_prevShaderId = m_curShaderId;
+                m_pendingMask &= ~ARD.PM_VERTLAYOUT;
+            }
         }
         return true;
     }
 
     override public function resetStates():Void
     {
-        m_curIndexBuf = 1;
-        m_newIndexBuf = 0;
-
-        m_curSrcFactor = RDIBlendFactors.ZERO;
-        m_newSrcFactor = RDIBlendFactors.ONE;
-
-        m_curDstFactor = RDIBlendFactors.ONE;
-        m_newDstFactor = RDIBlendFactors.ZERO;
-
-        m_curCullMode = RDICullModes.NONE;
-        m_newCullMode = RDICullModes.BACK;
-
-        m_depthTestEnabled = false;
-        m_curDepthTest = RDITestModes.GREATER;
-        m_newDepthTest = RDITestModes.LESS;
-
-        
-        for (i in 0...16)
-            setTexture(i, 0, 0);
-
-        m_activeVertexAttribsMask = 0;
-
         for (i in 0...m_caps.maxVertAttribs)
             hx_gl_disableVertexAttribArray(i);
 
-        m_pendingMask = 0xFFFFFFFF;
-        commitStates();
+        super.resetStates();
     }
 
     override public function isLost():Bool 
@@ -928,5 +934,8 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
     public static var hx_gl_deleteRenderbuffer = cpp.Lib.load("foo3D", "hx_gl_deleteRenderbuffer", 1);
     public static var hx_gl_deleteFramebuffer = cpp.Lib.load("foo3D", "hx_gl_deleteFramebuffer", 1);
     public static var hx_gl_blitFramebuffer = cpp.Lib.load("foo3D", "hx_gl_blitFramebuffer", 3);
+    public static var hx_gl_depthMask = cpp.Lib.load("foo3D", "hx_gl_depthMask", 1);
+    public static var hx_gl_blendEquation = cpp.Lib.load("foo3D", "hx_gl_blendEquation", 1);
+    public static var hx_gl_blendEquationBuffer = cpp.Lib.load("foo3D", "hx_gl_blendEquationBuffer", 2);
     
 }

@@ -280,9 +280,9 @@ Sample.onCtxCreated = function(_ctx) {
 	});
 	Sample.rd.bindProgram(Sample.prog);
 	var loc = Sample.rd.getUniformLoc(Sample.prog,"viewProjMat");
-	Sample.rd.setUniform(loc,35675,mProj.rawData);
+	Sample.rd.setUniform(loc,35676,mProj.rawData);
 	Sample.mWorldLoc = Sample.rd.getUniformLoc(Sample.prog,"worldMat");
-	Sample.rd.setUniform(Sample.mWorldLoc,35675,Sample.mWorld.rawData);
+	Sample.rd.setUniform(Sample.mWorldLoc,35676,Sample.mWorld.rawData);
 	Sample.interpLoc = Sample.rd.getUniformLoc(Sample.prog,"interp");
 	Sample.rd.setUniform(Sample.interpLoc,5126,[0.0]);
 	loc = Sample.rd.getSamplerLoc(Sample.prog,"uSampler");
@@ -321,7 +321,7 @@ Sample.onCtxUpdate = function(_) {
 	Sample.rd.setVertexBuffer(1,Sample.vBuffers[Sample.nextFrame]);
 	Sample.rot += 10 * foo3D.utils.Frame.deltaTime;
 	Sample.mWorld.recompose(math.Quat.rotateY(Sample.rot),math.Vec3.create(0.1,0.1,0.1),math.Vec3.create(0,-1,-7.5));
-	Sample.rd.setUniform(Sample.mWorldLoc,35675,Sample.mWorld.rawData);
+	Sample.rd.setUniform(Sample.mWorldLoc,35676,Sample.mWorld.rawData);
 	Sample.rd.clear(-1,0,0,0.8);
 	Sample.rd.draw(4,Sample.md2.header.numTris * 3,0);
 }
@@ -639,7 +639,10 @@ foo3D.AbstractRenderDevice = function(_ctx) {
 $hxClasses["foo3D.AbstractRenderDevice"] = foo3D.AbstractRenderDevice;
 foo3D.AbstractRenderDevice.__name__ = true;
 foo3D.AbstractRenderDevice.prototype = {
-	setDepthFunc: function(_mode) {
+	getDeviceCaps: function() {
+		return this.m_caps;
+	}
+	,setDepthFunc: function(_mode) {
 		if(_mode == null) _mode = 513;
 		this.m_newDepthTest = _mode;
 		this.m_pendingMask |= 128;
@@ -687,10 +690,10 @@ foo3D.AbstractRenderDevice.prototype = {
 		this.m_pendingMask |= 1;
 	}
 	,drawArrays: function(_primType,_offset,_size) {
-		throw "NOT IMPLENTED";
+		throw "NOT IMPLEMENTED";
 	}
 	,draw: function(_primType,_numInds,_offset) {
-		throw "NOT IMPLENTED";
+		throw "NOT IMPLEMENTED";
 	}
 	,clear: function(_flags,_r,_g,_b,_a,_depth) {
 		if(_depth == null) _depth = 1;
@@ -698,79 +701,79 @@ foo3D.AbstractRenderDevice.prototype = {
 		if(_b == null) _b = 0;
 		if(_g == null) _g = 0;
 		if(_r == null) _r = 0;
-		throw "NOT IMPLENTED";
+		throw "NOT IMPLEMENTED";
 	}
 	,applySamplerState: function(_tex) {
-		throw "NOT IMPLENTED";
+		throw "NOT IMPLEMENTED";
 	}
 	,applyVertexLayout: function() {
-		throw "NOT IMPLENTED";
+		throw "NOT IMPLEMENTED";
 		return false;
 	}
 	,isLost: function() {
-		throw "NOT IMPLENTED";
+		throw "NOT IMPLEMENTED";
 		return true;
 	}
 	,resetStates: function() {
-		throw "NOT IMPLENTED";
+		throw "NOT IMPLEMENTED";
 	}
 	,commitStates: function(_filter) {
 		if(_filter == null) _filter = -1;
-		throw "NOT IMPLENTED";
+		throw "NOT IMPLEMENTED";
 		return false;
 	}
 	,getRenderBufferData: function(_handle,_bufIndex) {
 		if(_bufIndex == null) _bufIndex = 0;
-		throw "NOT IMPLENTED";
+		throw "NOT IMPLEMENTED";
 		return null;
 	}
 	,bindRenderBuffer: function(_handle) {
-		throw "NOT IMPLENTED";
+		throw "NOT IMPLEMENTED";
 	}
 	,getRenderBufferTex: function(_handle,_bufIndex) {
 		if(_bufIndex == null) _bufIndex = 0;
-		throw "NOT IMPLENTED";
+		throw "NOT IMPLEMENTED";
 		return 0;
 	}
 	,destroyRenderBuffer: function(_handle) {
-		throw "NOT IMPLENTED";
+		throw "NOT IMPLEMENTED";
 	}
 	,createRenderBuffer: function(_width,_height,_format,_depth,_numColBufs,_samples) {
 		if(_samples == null) _samples = 0;
 		if(_numColBufs == null) _numColBufs = 1;
-		throw "NOT IMPLENTED";
+		throw "NOT IMPLEMENTED";
 		return 0;
 	}
 	,setSampler: function(_loc,_texUnit) {
-		throw "NOT IMPLENTED";
+		throw "NOT IMPLEMENTED";
 	}
 	,setUniform: function(_loc,_type,_values) {
-		throw "NOT IMPLENTED";
+		throw "NOT IMPLEMENTED";
 	}
 	,getSamplerLoc: function(_handle,_name) {
-		throw "NOT IMPLENTED";
+		throw "NOT IMPLEMENTED";
 		return null;
 	}
 	,getUniformLoc: function(_handle,_name) {
-		throw "NOT IMPLENTED";
+		throw "NOT IMPLEMENTED";
 		return null;
 	}
 	,getActiveUniformInfo: function(_handle,_index) {
-		throw "NOT IMPLENTED";
+		throw "NOT IMPLEMENTED";
 		return null;
 	}
 	,getActiveUniformCount: function(_handle) {
-		throw "NOT IMPLENTED";
+		throw "NOT IMPLEMENTED";
 		return 0;
 	}
 	,bindProgram: function(_handle) {
-		throw "NOT IMPLENTED";
+		throw "NOT IMPLEMENTED";
 	}
 	,destroyProgram: function(_handle) {
-		throw "NOT IMPLENTED";
+		throw "NOT IMPLEMENTED";
 	}
 	,createProgram: function(_vertexShaderSrc,_fragmentShaderSrc) {
-		throw "NOT IMPLENTED";
+		throw "NOT IMPLEMENTED";
 		return 0;
 	}
 	,getTextureMem: function() {
@@ -792,7 +795,7 @@ foo3D.AbstractRenderDevice.prototype = {
 		throw "NOT IMPLEMENTED";
 	}
 	,uploadTextureData: function(_handle,_slice,_mipLevel,_pixels) {
-		throw "NOT IMPLENTED";
+		throw "NOT IMPLEMENTED";
 	}
 	,createTexture: function(_type,_width,_height,_format,_hasMips,_genMips,_hintIsRenderTarget) {
 		if(_hintIsRenderTarget == null) _hintIsRenderTarget = false;
@@ -833,7 +836,7 @@ foo3D.AbstractRenderDevice.prototype = {
 		return 0;
 	}
 	,init: function() {
-		throw "NOT IMPLENTED";
+		throw "NOT IMPLEMENTED";
 	}
 	,__class__: foo3D.AbstractRenderDevice
 }
@@ -849,7 +852,7 @@ foo3D.impl.WebGLRenderDevice.prototype = $extend(foo3D.AbstractRenderDevice.prot
 		if(this.commitStates()) this.m_ctx.drawArrays(_primType,_offset,_size);
 	}
 	,draw: function(_primType,_numInds,_offset) {
-		if(this.commitStates()) this.m_ctx.drawElements(_primType,_numInds,5123,_offset);
+		if(this.commitStates()) this.m_ctx.drawElements(_primType,_numInds,5123,_offset * 2);
 	}
 	,clear: function(_flags,_r,_g,_b,_a,_depth) {
 		if(_depth == null) _depth = 1;
@@ -1148,10 +1151,10 @@ foo3D.impl.WebGLRenderDevice.prototype = $extend(foo3D.AbstractRenderDevice.prot
 		case 35666:
 			this.m_ctx.uniform4fv(_loc,new Float32Array(_values));
 			break;
-		case 35676:
+		case 35675:
 			this.m_ctx.uniformMatrix3fv(_loc,false,new Float32Array(_values));
 			break;
-		case 35675:
+		case 35676:
 			this.m_ctx.uniformMatrix4fv(_loc,false,new Float32Array(_values));
 			break;
 		}
@@ -1371,6 +1374,15 @@ foo3D.impl.WebGLRenderDevice.prototype = $extend(foo3D.AbstractRenderDevice.prot
 		this.m_caps.maxVertUniforms = this.m_ctx.getParameter(36347);
 		this.m_caps.maxColorAttachments = 1;
 		console.log(this.m_caps.toString());
+		var supportedExtensions = this.m_ctx.getSupportedExtensions();
+		var e = "[Foo3D] - Supported extensions by browser:\n";
+		var _g = 0;
+		while(_g < supportedExtensions.length) {
+			var s = supportedExtensions[_g];
+			++_g;
+			e += s + "\n";
+		}
+		console.log(e);
 		this.resetStates();
 	}
 	,__class__: foo3D.impl.WebGLRenderDevice
@@ -1436,7 +1448,7 @@ $hxClasses["foo3D.utils.Frame"] = foo3D.utils.Frame;
 foo3D.utils.Frame.__name__ = true;
 foo3D.utils.Frame.requestContext = function(_config) {
 	var container = js.Browser.document.getElementById(_config.name);
-	var canvas = js.Boot.__cast(js.Browser.document.createElement("canvas") , HTMLCanvasElement);
+	var canvas = js.Browser.document.createElement("canvas");
 	canvas.width = _config.width;
 	canvas.height = _config.height;
 	container.appendChild(canvas);
@@ -2717,6 +2729,7 @@ foo3D.RDIBufferUsage.STATIC = 35044;
 foo3D.RDIBufferUsage.DYNAMIC = 35048;
 foo3D.RDIBufferType.VERTEX = 34962;
 foo3D.RDIBufferType.INDEX = 34963;
+foo3D.RDIBufferType.ARRAY_BUFFER = 34962;
 foo3D.RDITextureTypes.TEX2D = 3553;
 foo3D.RDITextureTypes.TEXCUBE = 34067;
 foo3D.RDITextureFormats.RGBA8 = 32856;
@@ -2727,8 +2740,8 @@ foo3D.RDIShaderConstType.FLOAT = 5126;
 foo3D.RDIShaderConstType.FLOAT2 = 35664;
 foo3D.RDIShaderConstType.FLOAT3 = 35665;
 foo3D.RDIShaderConstType.FLOAT4 = 35666;
-foo3D.RDIShaderConstType.FLOAT44 = 35675;
-foo3D.RDIShaderConstType.FLOAT33 = 35676;
+foo3D.RDIShaderConstType.FLOAT33 = 35675;
+foo3D.RDIShaderConstType.FLOAT44 = 35676;
 foo3D.RDIShaderConstType.SAMPLER_2D = 35678;
 foo3D.RDIShaderConstType.SAMPLER_CUBE = 35680;
 foo3D.RDISamplerState.FILTER_BILINEAR = 0;
@@ -2769,6 +2782,7 @@ foo3D.RDICullModes.NONE = 0;
 foo3D.RDIClearFlags.COLOR = 1;
 foo3D.RDIClearFlags.DEPTH = 2;
 foo3D.RDIClearFlags.ALL = -1;
+foo3D.RDIPrimType.LINES = 1;
 foo3D.RDIPrimType.TRIANGLES = 4;
 foo3D.RDIPrimType.TRISTRIP = 5;
 foo3D.AbstractRenderDevice.SS_FILTER_START = 0;
