@@ -4,17 +4,17 @@ import math.Mat44;
 import Binary;
 import Md2Parser;
 
-import foo3D.utils.Frame;
-import foo3D.RenderDevice;
-import foo3D.RenderContext;
+import foo3d.utils.Frame;
+import foo3d.RenderDevice;
+import foo3d.RenderContext;
 
 class Sample 
 {
     static var rd:RenderDevice;
-    static var base:SampleBase;
+    static var base:SampleBase = new SampleBase();
 
-    static var playAnimation:Bool;
-    static var showGlow:Bool;
+    static var playAnimation:Bool = false;
+    static var showGlow:Bool = true;
     static var curFrame:Int = 0;    
     static var nextFrame:Int = 1;
 
@@ -48,20 +48,30 @@ class Sample
     // draw the blurred glowmap on a quad into the backbuffer
     static var blurProg:Int;
     static var blurLocs:Map<String, UniformLocationType>;
+    
+    public function new() {}
 
+#if lime
+    public function ready (lime:lime.Lime):Void {
+        onCtxCreated(lime.render.direct_renderer_handle);
+    }
+    private function render ():Void {
+        onCtxUpdate(null);
+    }
+    public function ontouchbegin(touch_item:Dynamic):Void {
+        playAnimation = !playAnimation;
+    }
+#else
     static function main() 
     {
-        showGlow = true;
-        playAnimation = false;
-
-        base = new SampleBase();
         base.registerOnKeyDown(onKeyDown);
 
         Frame.onCtxCreated.add(onCtxCreated);
         Frame.onCtxLost.add(onCtxLost);
         Frame.onCtxUpdate.add(onCtxUpdate);        
-        Frame.requestContext({name:"foo3D-stage", width:800, height:600});
+        Frame.requestContext({name:"foo3d-stage", width:800, height:600});
     }
+#end
 
     static function onCtxCreated(_ctx:RenderContext):Void
     {
@@ -80,17 +90,17 @@ class Sample
         mWorldMat.appendScale(0.1, 0.1, 0.1);
 
         // prep the model
-        processMd2("blade_md2");
+        processMd2(#if !lime "../../Common/" + #end "resources/tekkblade.md2");
 
         // load the textures
-        var texSrc:String = "../../Common/resources/tekkblade.png";
+        var texSrc:String = #if !lime "../../Common/" + #end "resources/tekkblade.png";
         texDiffuse = rd.createTexture(RDITextureTypes.TEX2D, 256, 256, RDITextureFormats.RGBA8, false, true);
         rd.uploadTextureData(texDiffuse, 0, 0, null);
         ImageLoader.loadImage(texSrc, function(_data:Dynamic):Void {
             rd.uploadTextureData(texDiffuse, 0, 0, _data);
         });
         
-        texSrc = "../../Common/resources/fire.png";
+        texSrc = #if !lime "../../Common/" + #end "resources/fire.png";
         texGlow = rd.createTexture(RDITextureTypes.TEX2D, 512, 512, RDITextureFormats.RGBA8, false, true);
         rd.uploadTextureData(texGlow, 0, 0, null);        
         ImageLoader.loadImage(texSrc, function(_data:Dynamic):Void {
@@ -145,14 +155,19 @@ class Sample
 
     static var rot:Float = 0;
     static var fpsTimer:Float = 0;
-    static var animFPS:Float = 0.25;    
+    static var animFPS:Float = 0.1;    
     static var scrollTimer:Float = 0;
     static var scrollFPS:Float = 1.0;
+    static var deltaTime:Float = 0;
+    static var time:Float = haxe.Timer.stamp();
 
     static function onCtxUpdate(_):Void
     {
+        var curTime = (haxe.Timer.stamp());
+        deltaTime = curTime - time;
+
         // rotate the model
-        rot += 10 * Frame.deltaTime;
+        rot += 10 * deltaTime;
         mWorldMat.recompose(
             math.Quat.rotateY(rot),
             math.Vec3.create(0.1, 0.1, 0.1),
@@ -163,7 +178,7 @@ class Sample
         var t:Float = 0;
         if (playAnimation)
         {
-            fpsTimer += Frame.deltaTime;
+            fpsTimer += deltaTime;
             if (fpsTimer >= animFPS)
             {
                 curFrame = (curFrame + 1 >= md2.header.numFrames) ? 0 : curFrame + 1;
@@ -175,7 +190,7 @@ class Sample
             if (t > 1) t = 1;
         }
 
-        scrollTimer += Frame.deltaTime;
+        scrollTimer += deltaTime;
         if (scrollTimer >= scrollFPS)
             scrollTimer -= scrollFPS;
 
@@ -252,7 +267,7 @@ class Sample
                 rd.draw(RDIPrimType.TRIANGLES, 6, 0);
             }
         }
-
+        time = curTime;
     }
 
     static function onKeyDown(_evt:Dynamic):Void
@@ -267,7 +282,7 @@ class Sample
     static function processMd2(_id:String):Void
     {
         // parse the modeldata
-        md2 = Md2Parser.run(haxe.Resource.getBytes(_id));
+        md2 = Md2Parser.run(Binary.load(_id));
 
         // move all frames into individual VBOs
         md2VBuffers = [];
@@ -289,7 +304,7 @@ class Sample
                 verts.push(f.verts[md2.triangles[j].vertInds[2]].y);
                 verts.push(f.verts[md2.triangles[j].vertInds[2]].z);
             }
-            md2VBuffers.push(rd.createVertexBuffer(verts.length, verts, RDIBufferUsage.STATIC, 3));
+            md2VBuffers.push(rd.createVertexBuffer(verts.length*4, ByteTools.floats(verts), RDIBufferUsage.STATIC, 3));
         }
         // move the uvs into a VBO
         var uv:Array<Float> = [];
@@ -313,7 +328,7 @@ class Sample
             new RDIVertexLayoutAttrib("vPosDst", 1, 3, 0),
             new RDIVertexLayoutAttrib("vUv", 2, 2, 0),
         ]);
-        md2UvBuf = rd.createVertexBuffer(uv.length, uv, RDIBufferUsage.STATIC, 2);
-        md2IBuf = rd.createIndexBuffer(ind.length, ind, RDIBufferUsage.STATIC);
+        md2UvBuf = rd.createVertexBuffer(uv.length*4, ByteTools.floats(uv), RDIBufferUsage.STATIC, 2);
+        md2IBuf = rd.createIndexBuffer(ind.length*2, ByteTools.uShorts(ind), RDIBufferUsage.STATIC);
     }
 }

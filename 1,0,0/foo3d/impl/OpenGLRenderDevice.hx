@@ -1,6 +1,6 @@
-package foo3D.impl;
+package foo3d.impl;
 
-import foo3D.RenderDevice;
+import foo3d.RenderDevice;
 
 class OpenGLRenderDevice extends AbstractRenderDevice {
 
@@ -58,6 +58,10 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
 
     override function init():Void
     {
+        #if !HXCPP_FLOAT32
+            throw "[Foo3D - ERROR] - Using Doubles! Foo3d only supports 32bit Floats! Compile your project with -DHXCPP_FLOAT32!";
+        #end
+
         hx_rd_init(m_caps);
 
         trace(m_caps.toString());
@@ -70,11 +74,11 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
 		var buf:RDIBuffer = new RDIBuffer(
             RDIBufferType.VERTEX, 
             hx_gl_createBuffer(), 
-            _size * 4, 
+            _size, 
             _usageHint);
-    
+
         hx_gl_bindBuffer(buf.type, buf.glObj);
-        hx_gl_bufferData(buf.type, buf.size, _data, _usageHint);
+        hx_gl_bufferData(buf.type, buf.size, _data.getData(), _usageHint);
         hx_gl_bindBuffer(buf.type, null);
         
         m_bufferMem += buf.size;
@@ -86,11 +90,11 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
         var buf:RDIBuffer = new RDIBuffer(
             RDIBufferType.INDEX, 
             hx_gl_createBuffer(), 
-            _size * 4, 
+            _size, 
             _usageHint);
         
         hx_gl_bindBuffer(buf.type, buf.glObj);
-        hx_gl_bufferData(buf.type, buf.size, untyped _data, _usageHint);
+        hx_gl_bufferData(buf.type, buf.size, _data.getData(), _usageHint);
         hx_gl_bindBuffer(buf.type, null);
         
         m_bufferMem += buf.size;
@@ -112,7 +116,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
     {
         var buf:RDIBuffer = m_buffers.getRef(_handle);
         hx_gl_bindBuffer(buf.type, buf.glObj);
-        hx_gl_bufferSubData(buf.type, _offset, _data.length*4, untyped _data);
+        hx_gl_bufferSubData(buf.type, _offset, _data.length, _data.getData());
         hx_gl_bindBuffer(buf.type, null);
     }
     
@@ -120,8 +124,12 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
     {
         var buf:RDIBuffer = m_buffers.getRef(_handle);
         hx_gl_bindBuffer(buf.type, buf.glObj);
-        hx_gl_bufferSubData(buf.type, _offset, _data.length*4, untyped _data);
-        hx_gl_bindBuffer(buf.type, null);
+        hx_gl_bufferSubData(buf.type, _offset, _size, _data.getData());        
+        
+        if(m_curIndexBuf != 0) // rebind the old one
+            hx_gl_bindBuffer(buf.type, m_buffers.getRef(m_curIndexBuf).glObj);
+        else
+            hx_gl_bindBuffer(buf.type, null);
     }
 
     override public function createTexture(_type:Int, _width:Int, _height:Int, _format:Int, _hasMips:Bool, _genMips:Bool, ?_hintIsRenderTarget=false):Int { 
@@ -193,9 +201,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
             RDITextureTypes.TEX2D : (TEXTURE_CUBE_MAP_POSITIVE_X + _slice);
 
         if (_pixels == null) // we wanna upload an empty buffer
-        {
             hx_gl_texImage2D(target, _mipLevel, tex.glFmt, width, height, 0, inputFormat, inputType, null);
-        }
         else
             hx_gl_texImage2D(target, _mipLevel, tex.glFmt, width, height, 0, inputFormat, inputType, _pixels);
 
@@ -373,53 +379,6 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
     override public function setSampler(_loc:UniformLocationType, _texUnit:Int):Void 
     {
         hx_gl_uniform1i( _loc, _texUnit );
-    }
-
-    override function applyVertexLayout():Bool
-    {
-        if (m_newVertLayout == 0 || m_curShaderId == 0)
-            return false;
-
-        var vl:RDIVertexLayout = m_vertexLayouts[m_newVertLayout - 1];
-        var shader:RDIShaderProgram = m_shaders.getRef(m_curShaderId);
-        var inputLayout:RDIShaderInputLayout = shader.inputLayouts[m_newVertLayout - 1];
-
-        if (!inputLayout.valid)
-            return false;
-
-        var newVertexAttribMask:Int = 0;
-        for (i in 0...vl.numAttribs) {
-            var attribIndex:Int = inputLayout.attribIndices[i];
-            if (attribIndex >= 0) {
-                var attrib:RDIVertexLayoutAttrib = vl.attribs[i];
-                var vbSlot:RDIVertBufSlot = m_vertBufSlots[attrib.vbSlot];
-
-                hx_gl_bindBuffer(RDIBufferType.VERTEX, m_buffers.getRef(vbSlot.vbObj).glObj);
-                hx_gl_vertexAttribPointer(
-                    attribIndex, 
-                    attrib.size, 
-                    FLOAT, 
-                    false, 
-                    vbSlot.stride*4, 
-                    (vbSlot.offset + attrib.offset)*4
-                );
-                
-                newVertexAttribMask |= 1 << attribIndex;
-            }
-        }
-
-        for (i in 0...16) {
-            var curBit:Int = 1 << i;
-            if ((newVertexAttribMask & curBit) != (m_activeVertexAttribsMask & curBit)) {
-                if ((newVertexAttribMask & curBit) == curBit)
-                    hx_gl_enableVertexAttribArray(i);
-                else
-                    hx_gl_disableVertexAttribArray(i);
-            }
-        }
-        m_activeVertexAttribsMask = newVertexAttribMask;
-        
-        return true;
     }
 
     override public function createRenderBuffer(_width:Int, _height:Int, _format:Int, _depth:Bool, ?_numColBufs:Int=1, ?_samples:Int = 0):Int 
@@ -651,6 +610,53 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
         }
     }
 
+    override function applyVertexLayout():Bool
+    {
+        if (m_newVertLayout == 0 || m_curShaderId == 0)
+            return false;
+
+        var vl:RDIVertexLayout = m_vertexLayouts[m_newVertLayout - 1];
+        var shader:RDIShaderProgram = m_shaders.getRef(m_curShaderId);
+        var inputLayout:RDIShaderInputLayout = shader.inputLayouts[m_newVertLayout - 1];
+
+        if (!inputLayout.valid)
+            return false;
+
+        var newVertexAttribMask:Int = 0;
+        for (i in 0...vl.numAttribs) {
+            var attribIndex:Int = inputLayout.attribIndices[i];
+            if (attribIndex >= 0) {
+                var attrib:RDIVertexLayoutAttrib = vl.attribs[i];
+                var vbSlot:RDIVertBufSlot = m_vertBufSlots[attrib.vbSlot];
+
+                hx_gl_bindBuffer(RDIBufferType.VERTEX, m_buffers.getRef(vbSlot.vbObj).glObj);
+                hx_gl_vertexAttribPointer(
+                    attribIndex, 
+                    attrib.size, 
+                    FLOAT, 
+                    false, 
+                    vbSlot.stride*4, 
+                    (vbSlot.offset + attrib.offset)*4
+                );
+                
+                newVertexAttribMask |= 1 << attribIndex;
+            }
+        }
+
+        for (i in 0...16) {
+            var curBit:Int = 1 << i;
+            if ((newVertexAttribMask & curBit) != (m_activeVertexAttribsMask & curBit)) {
+                if ((newVertexAttribMask & curBit) == curBit)
+                    hx_gl_enableVertexAttribArray(i);
+                else
+                    hx_gl_disableVertexAttribArray(i);
+            }
+        }
+        m_activeVertexAttribsMask = newVertexAttribMask;
+        
+        return true;
+    }
+
     static var magFilters:Array<Int>        = [LINEAR, LINEAR, NEAREST];
     static var minFiltersMips:Array<Int>    = [LINEAR_MIPMAP_NEAREST, LINEAR_MIPMAP_LINEAR, NEAREST_MIPMAP_NEAREST];
     static var wrapModes:Array<Int>         = [CLAMP_TO_EDGE, REPEAT, MIRRORED_REPEAT];
@@ -857,7 +863,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
     override public function draw(_primType:Int, _numInds:Int, _offset:Int):Void
     {
         if (commitStates())
-            hx_gl_drawRangeElements(_primType, _numInds, _offset);
+            hx_gl_drawElements(_primType, _numInds, _offset);
     }
 
     override public function drawArrays(_primType:Int, _offset:Int, _size:Int):Void
@@ -867,75 +873,87 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
     }
 
 	// Native Interface
-	public static var hx_rd_init = cpp.Lib.load("foo3D", "hx_rd_init", 1);
-	public static var hx_gl_createBuffer = cpp.Lib.load("foo3D", "hx_gl_createBuffer", 0);
-	public static var hx_gl_bindBuffer = cpp.Lib.load("foo3D", "hx_gl_bindBuffer", 2);
-	public static var hx_gl_bufferData = cpp.Lib.load("foo3D", "hx_gl_bufferData", 4);
-	public static var hx_gl_deleteBuffer = cpp.Lib.load("foo3D", "hx_gl_deleteBuffer", 1);
-	public static var hx_gl_bufferSubData = cpp.Lib.load("foo3D", "hx_gl_bufferSubData", 4);
-	public static var hx_gl_viewport = cpp.Lib.load("foo3D", "hx_gl_viewport", 4);
-	public static var hx_gl_scissor = cpp.Lib.load("foo3D", "hx_gl_scissor", 4);
-	public static var hx_gl_enable = cpp.Lib.load("foo3D", "hx_gl_enable", 1);
-	public static var hx_gl_disable = cpp.Lib.load("foo3D", "hx_gl_disable", 1);
-	public static var hx_gl_cullFace = cpp.Lib.load("foo3D", "hx_gl_cullFace", 1);
-	public static var hx_gl_depthFunc = cpp.Lib.load("foo3D", "hx_gl_depthFunc", 1);
-	public static var hx_gl_blendFunc = cpp.Lib.load("foo3D", "hx_gl_blendFunc", 2);
-	public static var hx_gl_activeTexture = cpp.Lib.load("foo3D", "hx_gl_activeTexture", 1);
-	public static var hx_gl_bindTexture = cpp.Lib.load("foo3D", "hx_gl_bindTexture", 2);
-	public static var hx_gl_vertexAttribPointer = cpp.Lib.load("foo3D", "hx_gl_vertexAttribPointer", -1);
-	public static var hx_gl_enableVertexAttribArray = cpp.Lib.load("foo3D", "hx_gl_enableVertexAttribArray", 1);
-	public static var hx_gl_disableVertexAttribArray = cpp.Lib.load("foo3D", "hx_gl_disableVertexAttribArray", 1);
-	public static var hx_gl_texParameteri = cpp.Lib.load("foo3D", "hx_gl_texParameteri", 3);
-	public static var hx_gl_clearDepth = cpp.Lib.load("foo3D", "hx_gl_clearDepth", 1);
-	public static var hx_gl_clearColor = cpp.Lib.load("foo3D", "hx_gl_clearColor", 4);
-	public static var hx_gl_clear = cpp.Lib.load("foo3D", "hx_gl_clear", 1);
-	public static var hx_gl_createTexture = cpp.Lib.load("foo3D", "hx_gl_createTexture", 0);
-	public static var hx_gl_texImage2D = cpp.Lib.load("foo3D", "hx_gl_texImage2D", -1);
-	public static var hx_gl_generateMipmap = cpp.Lib.load("foo3D", "hx_gl_generateMipmap", 1);
-	public static var hx_gl_deleteTexture = cpp.Lib.load("foo3D", "hx_gl_deleteTexture", 1);
-	public static var hx_gl_createShader = cpp.Lib.load("foo3D", "hx_gl_createShader", 1);
-	public static var hx_gl_deleteShader = cpp.Lib.load("foo3D", "hx_gl_deleteShader", 1);
-	public static var hx_gl_compileShader = cpp.Lib.load("foo3D", "hx_gl_compileShader", 1);
-	public static var hx_gl_shaderSource = cpp.Lib.load("foo3D", "hx_gl_shaderSource", 2);
-	public static var hx_gl_getShaderiv = cpp.Lib.load("foo3D", "hx_gl_getShaderiv", 2);
-	public static var hx_gl_getShaderInfoLog = cpp.Lib.load("foo3D", "hx_gl_getShaderInfoLog", 1);
-	public static var hx_gl_createProgram = cpp.Lib.load("foo3D", "hx_gl_createProgram", 0);
-	public static var hx_gl_deleteProgram = cpp.Lib.load("foo3D", "hx_gl_deleteProgram", 1);
-	public static var hx_gl_linkProgram = cpp.Lib.load("foo3D", "hx_gl_linkProgram", 1);
-	public static var hx_gl_getProgramiv = cpp.Lib.load("foo3D", "hx_gl_getProgramiv", 2);
-	public static var hx_gl_getProgramInfoLog = cpp.Lib.load("foo3D", "hx_gl_getProgramInfoLog", 1);
-	public static var hx_gl_attachShader = cpp.Lib.load("foo3D", "hx_gl_attachShader", 2);
-	public static var hx_gl_getActiveAttrib = cpp.Lib.load("foo3D", "hx_gl_getActiveAttrib", 3);
-	public static var hx_gl_getAttribLocation = cpp.Lib.load("foo3D", "hx_gl_getAttribLocation", 2);
-	public static var hx_gl_useProgram = cpp.Lib.load("foo3D", "hx_gl_useProgram", 1);
-	public static var hx_gl_getActiveUniform = cpp.Lib.load("foo3D", "hx_gl_getActiveUniform", 3);	
-	public static var hx_gl_getUniformLocation = cpp.Lib.load("foo3D", "hx_gl_getUniformLocation", 2);
-	public static var hx_gl_uniform1fv = cpp.Lib.load("foo3D", "hx_gl_uniform1fv", 2);
-	public static var hx_gl_uniform2fv = cpp.Lib.load("foo3D", "hx_gl_uniform2fv", 2);
-	public static var hx_gl_uniform3fv = cpp.Lib.load("foo3D", "hx_gl_uniform3fv", 2);
-	public static var hx_gl_uniform4fv = cpp.Lib.load("foo3D", "hx_gl_uniform4fv", 2);
-	public static var hx_gl_uniformMatrix3fv = cpp.Lib.load("foo3D", "hx_gl_uniformMatrix3fv", 3);
-	public static var hx_gl_uniformMatrix4fv = cpp.Lib.load("foo3D", "hx_gl_uniformMatrix4fv", 3);
-	public static var hx_gl_uniform1i = cpp.Lib.load("foo3D", "hx_gl_uniform1i", 2);
-	public static var hx_gl_drawRangeElements = cpp.Lib.load("foo3D", "hx_gl_drawRangeElements", 3);
-	public static var hx_gl_drawArrays = cpp.Lib.load("foo3D", "hx_gl_drawArrays", 3);
-	public static var hx_gl_getIntegerv = cpp.Lib.load("foo3D", "hx_gl_getIntegerv", 1);
-    public static var hx_gl_genFramebuffer = cpp.Lib.load("foo3D", "hx_gl_genFramebuffer", 0);
-    public static var hx_gl_genRenderbuffer = cpp.Lib.load("foo3D", "hx_gl_genRenderbuffer", 0);
-    public static var hx_gl_bindFramebuffer = cpp.Lib.load("foo3D", "hx_gl_bindFramebuffer", 2);
-    public static var hx_gl_bindRenderbuffer = cpp.Lib.load("foo3D", "hx_gl_bindRenderbuffer", 2);
-    public static var hx_gl_framebufferTexture2D = cpp.Lib.load("foo3D", "hx_gl_framebufferTexture2D", 2);
-    public static var hx_gl_renderbufferStorageMultisample = cpp.Lib.load("foo3D", "hx_gl_renderbufferStorageMultisample", 4);
-    public static var hx_gl_framebufferRenderbuffer = cpp.Lib.load("foo3D", "hx_gl_framebufferRenderbuffer", 2);
-    public static var hx_gl_drawBuffer = cpp.Lib.load("foo3D", "hx_gl_drawBuffer", 1);
-    public static var hx_gl_drawBuffers = cpp.Lib.load("foo3D", "hx_gl_drawBuffers", 1);
-    public static var hx_gl_readBuffer = cpp.Lib.load("foo3D", "hx_gl_readBuffer", 1);
-    public static var hx_gl_checkFrameBufferStatus = cpp.Lib.load("foo3D", "hx_gl_checkFrameBufferStatus", 0);
-    public static var hx_gl_deleteRenderbuffer = cpp.Lib.load("foo3D", "hx_gl_deleteRenderbuffer", 1);
-    public static var hx_gl_deleteFramebuffer = cpp.Lib.load("foo3D", "hx_gl_deleteFramebuffer", 1);
-    public static var hx_gl_blitFramebuffer = cpp.Lib.load("foo3D", "hx_gl_blitFramebuffer", 3);
-    public static var hx_gl_depthMask = cpp.Lib.load("foo3D", "hx_gl_depthMask", 1);
-    public static var hx_gl_blendEquation = cpp.Lib.load("foo3D", "hx_gl_blendEquation", 1);
-    public static var hx_gl_blendEquationBuffer = cpp.Lib.load("foo3D", "hx_gl_blendEquationBuffer", 2);
+    public static var hx_gl_activeTexture = cpp.Lib.load("foo3d", "hx_gl_activeTexture", 1);
+    public static var hx_gl_attachShader = cpp.Lib.load("foo3d", "hx_gl_attachShader", 2);
     
+    public static var hx_gl_bindBuffer = cpp.Lib.load("foo3d", "hx_gl_bindBuffer", 2);
+    public static var hx_gl_bindFramebuffer = cpp.Lib.load("foo3d", "hx_gl_bindFramebuffer", 2);
+    public static var hx_gl_bindRenderbuffer = cpp.Lib.load("foo3d", "hx_gl_bindRenderbuffer", 2);
+    public static var hx_gl_bindTexture = cpp.Lib.load("foo3d", "hx_gl_bindTexture", 2);    
+    public static var hx_gl_blendEquation = cpp.Lib.load("foo3d", "hx_gl_blendEquation", 1);
+    public static var hx_gl_blendEquationBuffer = cpp.Lib.load("foo3d", "hx_gl_blendEquationBuffer", 2);
+    public static var hx_gl_blendFunc = cpp.Lib.load("foo3d", "hx_gl_blendFunc", 2);    
+    public static var hx_gl_blitFramebuffer = cpp.Lib.load("foo3d", "hx_gl_blitFramebuffer", 3);
+    public static var hx_gl_bufferData = cpp.Lib.load("foo3d", "hx_gl_bufferData", 4);
+    public static var hx_gl_bufferSubData = cpp.Lib.load("foo3d", "hx_gl_bufferSubData", 4);
+    
+    public static var hx_gl_checkFrameBufferStatus = cpp.Lib.load("foo3d", "hx_gl_checkFrameBufferStatus", 0);
+    public static var hx_gl_clearDepth = cpp.Lib.load("foo3d", "hx_gl_clearDepth", 1);
+    public static var hx_gl_clearColor = cpp.Lib.load("foo3d", "hx_gl_clearColor", 4);
+    public static var hx_gl_clear = cpp.Lib.load("foo3d", "hx_gl_clear", 1);
+    public static var hx_gl_compileShader = cpp.Lib.load("foo3d", "hx_gl_compileShader", 1);
+    public static var hx_gl_createBuffer = cpp.Lib.load("foo3d", "hx_gl_createBuffer", 0);
+    public static var hx_gl_createProgram = cpp.Lib.load("foo3d", "hx_gl_createProgram", 0);
+    public static var hx_gl_createShader = cpp.Lib.load("foo3d", "hx_gl_createShader", 1);
+    public static var hx_gl_createTexture = cpp.Lib.load("foo3d", "hx_gl_createTexture", 0);
+    public static var hx_gl_cullFace = cpp.Lib.load("foo3d", "hx_gl_cullFace", 1);
+
+    public static var hx_gl_deleteBuffer = cpp.Lib.load("foo3d", "hx_gl_deleteBuffer", 1);
+    public static var hx_gl_deleteFramebuffer = cpp.Lib.load("foo3d", "hx_gl_deleteFramebuffer", 1);
+    public static var hx_gl_deleteRenderbuffer = cpp.Lib.load("foo3d", "hx_gl_deleteRenderbuffer", 1);
+    public static var hx_gl_deleteProgram = cpp.Lib.load("foo3d", "hx_gl_deleteProgram", 1);
+    public static var hx_gl_deleteShader = cpp.Lib.load("foo3d", "hx_gl_deleteShader", 1);
+    public static var hx_gl_deleteTexture = cpp.Lib.load("foo3d", "hx_gl_deleteTexture", 1);
+    public static var hx_gl_depthFunc = cpp.Lib.load("foo3d", "hx_gl_depthFunc", 1);
+    public static var hx_gl_depthMask = cpp.Lib.load("foo3d", "hx_gl_depthMask", 1);
+    public static var hx_gl_disable = cpp.Lib.load("foo3d", "hx_gl_disable", 1);
+    public static var hx_gl_disableVertexAttribArray = cpp.Lib.load("foo3d", "hx_gl_disableVertexAttribArray", 1);
+    public static var hx_gl_drawArrays = cpp.Lib.load("foo3d", "hx_gl_drawArrays", 3);
+    public static var hx_gl_drawBuffer = cpp.Lib.load("foo3d", "hx_gl_drawBuffer", 1);
+    public static var hx_gl_drawBuffers = cpp.Lib.load("foo3d", "hx_gl_drawBuffers", 1);
+    public static var hx_gl_drawElements = cpp.Lib.load("foo3d", "hx_gl_drawElements", 3);
+    
+    public static var hx_gl_enable = cpp.Lib.load("foo3d", "hx_gl_enable", 1);
+    public static var hx_gl_enableVertexAttribArray = cpp.Lib.load("foo3d", "hx_gl_enableVertexAttribArray", 1);
+
+    public static var hx_gl_framebufferRenderbuffer = cpp.Lib.load("foo3d", "hx_gl_framebufferRenderbuffer", 2);
+    public static var hx_gl_framebufferTexture2D = cpp.Lib.load("foo3d", "hx_gl_framebufferTexture2D", 2);
+
+    public static var hx_gl_genFramebuffer = cpp.Lib.load("foo3d", "hx_gl_genFramebuffer", 0);
+    public static var hx_gl_generateMipmap = cpp.Lib.load("foo3d", "hx_gl_generateMipmap", 1);
+    public static var hx_gl_genRenderbuffer = cpp.Lib.load("foo3d", "hx_gl_genRenderbuffer", 0);
+    public static var hx_gl_getActiveAttrib = cpp.Lib.load("foo3d", "hx_gl_getActiveAttrib", 3);
+    public static var hx_gl_getActiveUniform = cpp.Lib.load("foo3d", "hx_gl_getActiveUniform", 3);  
+    public static var hx_gl_getAttribLocation = cpp.Lib.load("foo3d", "hx_gl_getAttribLocation", 2);
+    public static var hx_gl_getIntegerv = cpp.Lib.load("foo3d", "hx_gl_getIntegerv", 1);
+    public static var hx_gl_getProgramiv = cpp.Lib.load("foo3d", "hx_gl_getProgramiv", 2);
+    public static var hx_gl_getProgramInfoLog = cpp.Lib.load("foo3d", "hx_gl_getProgramInfoLog", 1);
+    public static var hx_gl_getShaderiv = cpp.Lib.load("foo3d", "hx_gl_getShaderiv", 2);
+    public static var hx_gl_getShaderInfoLog = cpp.Lib.load("foo3d", "hx_gl_getShaderInfoLog", 1);
+    public static var hx_gl_getUniformLocation = cpp.Lib.load("foo3d", "hx_gl_getUniformLocation", 2);
+	
+	public static var hx_gl_linkProgram = cpp.Lib.load("foo3d", "hx_gl_linkProgram", 1);	
+	
+	public static var hx_gl_readBuffer = cpp.Lib.load("foo3d", "hx_gl_readBuffer", 1);
+    public static var hx_gl_renderbufferStorageMultisample = cpp.Lib.load("foo3d", "hx_gl_renderbufferStorageMultisample", 4);
+	public static var hx_gl_scissor = cpp.Lib.load("foo3d", "hx_gl_scissor", 4);
+    public static var hx_gl_shaderSource = cpp.Lib.load("foo3d", "hx_gl_shaderSource", 2);
+	
+	public static var hx_gl_texParameteri = cpp.Lib.load("foo3d", "hx_gl_texParameteri", 3);   
+    public static var hx_gl_texImage2D = cpp.Lib.load("foo3d", "hx_gl_texImage2D", -1);	
+	
+	public static var hx_gl_vertexAttribPointer = cpp.Lib.load("foo3d", "hx_gl_vertexAttribPointer", -1);
+	
+	public static var hx_gl_uniform1fv = cpp.Lib.load("foo3d", "hx_gl_uniform1fv", 2);
+    public static var hx_gl_uniform2fv = cpp.Lib.load("foo3d", "hx_gl_uniform2fv", 2);
+    public static var hx_gl_uniform3fv = cpp.Lib.load("foo3d", "hx_gl_uniform3fv", 2);
+    public static var hx_gl_uniform4fv = cpp.Lib.load("foo3d", "hx_gl_uniform4fv", 2);
+    public static var hx_gl_uniformMatrix3fv = cpp.Lib.load("foo3d", "hx_gl_uniformMatrix3fv", 3);
+    public static var hx_gl_uniformMatrix4fv = cpp.Lib.load("foo3d", "hx_gl_uniformMatrix4fv", 3);
+    public static var hx_gl_uniform1i = cpp.Lib.load("foo3d", "hx_gl_uniform1i", 2);	
+	public static var hx_gl_useProgram = cpp.Lib.load("foo3d", "hx_gl_useProgram", 1);	
+
+	public static var hx_gl_viewport = cpp.Lib.load("foo3d", "hx_gl_viewport", 4);
+	
+	public static var hx_rd_init = cpp.Lib.load("foo3d", "hx_rd_init", 1);
 }

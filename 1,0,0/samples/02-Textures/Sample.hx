@@ -1,22 +1,22 @@
 package ;
 
-import foo3D.utils.Frame;
-import foo3D.RenderDevice;
-import foo3D.RenderContext;
+import foo3d.utils.Frame;
+import foo3d.RenderDevice;
+import foo3d.RenderContext;
 import math.Mat44;
 
 class Sample 
 {
     // data
     static var quadVerts:Array<Float> = [ // position + uv
-        -1.0, 1.0, 0.0,     0.0, 0.0,
-        1.0, -1.0, 0.0,     1.0, 1.0,
-        1.0, 1.0, 0.0,      1.0, 0.0,
-        -1.0, -1.0, 0.0,    0.0, 1.0
+        -1.0, -1.0, 1.0,    0, 0,
+        1.0, -1.0, 1.0,     1, 0,
+        1.0, 1.0, 1.0,      1, 1,
+        -1.0, 1.0, 1.0,     0, 1,
     ];
 
     static var quadIndices:Array<Int> = 
-        [0, 1, 2, 0, 3, 1];
+        [0, 1, 2, 0, 2, 3];
     
 #if (js || cpp)
 
@@ -65,15 +65,25 @@ class Sample
     static var prog:Int;
     static var tex:Int;
 
+    public function new() {}
+
+#if lime
+    public function ready (lime:lime.Lime):Void {
+        onCtxCreated(lime.render.direct_renderer_handle);
+    }
+    private function render ():Void {
+        onCtxUpdate(null);
+    }
+#else
     static function main() 
     {
         Frame.onCtxCreated.add(onCtxCreated);
         Frame.onCtxLost.add(onCtxLost);
         Frame.onCtxUpdate.add(onCtxUpdate);
         
-        Frame.requestContext({name:"foo3D-stage", width:800, height:600});
+        Frame.requestContext({name:"foo3d-stage", width:800, height:600});
     }
-
+#end
     static function onCtxCreated(_ctx:RenderContext):Void
     {
         // create device and basic settings
@@ -92,12 +102,12 @@ class Sample
             new RDIVertexLayoutAttrib("vPos", 0, 3, 0),
             new RDIVertexLayoutAttrib("vUv", 0, 2, 3),
         ]);
-        vBuf = rd.createVertexBuffer(20, quadVerts, RDIBufferUsage.STATIC, 5);
-        iBuf = rd.createIndexBuffer(6, quadIndices, RDIBufferUsage.STATIC);
+        vBuf = rd.createVertexBuffer(20*4, ByteTools.floats(quadVerts), RDIBufferUsage.STATIC, 5);
+        iBuf = rd.createIndexBuffer(6*2, ByteTools.uShorts(quadIndices), RDIBufferUsage.STATIC);
         prog = rd.createProgram(vsSrc, fsSrc);
 
         // create a texture
-        var texSrc:String = "../../Common/resources/uv.png";
+        var texSrc:String = #if !lime "../../Common/" + #end "resources/uv.png";
         tex = rd.createTexture(RDITextureTypes.TEX2D, 256, 256, RDITextureFormats.RGBA8, false, true);
         rd.uploadTextureData(tex, 0, 0, null);
 

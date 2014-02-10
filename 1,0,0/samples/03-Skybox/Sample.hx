@@ -1,8 +1,8 @@
 package ;
 
-import foo3D.utils.Frame;
-import foo3D.RenderDevice;
-import foo3D.RenderContext;
+import foo3d.utils.Frame;
+import foo3d.RenderDevice;
+import foo3d.RenderContext;
 import math.Mat44;
 
 class Sample 
@@ -67,14 +67,25 @@ class Sample
 
     static var mWorldLoc:Dynamic;
 
+    public function new() {}
+
+#if lime
+    public function ready (lime:lime.Lime):Void {
+        onCtxCreated(lime.render.direct_renderer_handle);
+    }
+    private function render ():Void {
+        onCtxUpdate(null);
+    }
+#else
     static function main() 
     {
         Frame.onCtxCreated.add(onCtxCreated);
         Frame.onCtxLost.add(onCtxLost);
         Frame.onCtxUpdate.add(onCtxUpdate);
         
-        Frame.requestContext({name:"foo3D-stage", width:800, height:600});
+        Frame.requestContext({name:"foo3d-stage", width:800, height:600});
     }
+#end
 
     static function onCtxCreated(_ctx:RenderContext):Void
     {
@@ -92,8 +103,8 @@ class Sample
         vertLayout = rd.registerVertexLayout([
             new RDIVertexLayoutAttrib("vPos", 0, 3, 0),
         ]);
-        vBuf = rd.createVertexBuffer(24*3, cubeVerts, RDIBufferUsage.STATIC, 3);
-        iBuf = rd.createIndexBuffer(36, cubeIndices, RDIBufferUsage.STATIC);
+        vBuf = rd.createVertexBuffer(24*3*4, ByteTools.floats(cubeVerts), RDIBufferUsage.STATIC, 3);
+        iBuf = rd.createIndexBuffer(36*2, ByteTools.uShorts(cubeIndices), RDIBufferUsage.STATIC);
         prog = rd.createProgram(vsSrc, fsSrc);
 
         // create a texture
@@ -101,7 +112,7 @@ class Sample
         for (i in 0...6)
         {
             rd.uploadTextureData(tex, i, 0, null);
-            ImageLoader.loadImage("../../Common/resources/hills_" + i + ".png", function(_data:Dynamic):Void {
+            ImageLoader.loadImage(#if !lime "../../Common/" + #end "resources/hills_" + i + ".png", function(_data:Dynamic):Void {
                 rd.uploadTextureData(tex, i, 0, _data);
             });
         }
@@ -134,15 +145,22 @@ class Sample
     }
 
     static var rot:Float = 0;
+    static var deltaTime:Float = 0;
+    static var time:Float = 0;
     static function onCtxUpdate(_):Void
     {
+        var curTime = (haxe.Timer.stamp());
+        deltaTime = curTime - time;
+
         // rotate the skybox around
-        rot += 10 * Frame.deltaTime;
+        rot += 10 * deltaTime;
         mWorld.setOrientation(math.Quat.rotateY(rot));
         rd.setUniform(mWorldLoc, RDIShaderConstType.FLOAT44, mWorld.rawData);
 
         // clear framebuffer and draw the bound resources
         rd.clear(RDIClearFlags.ALL, 0, 0, 0.8);
         rd.draw(RDIPrimType.TRIANGLES, 36, 0);
+
+        time = curTime;
     }
 }

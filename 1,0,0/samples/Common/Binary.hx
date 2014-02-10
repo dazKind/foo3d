@@ -10,32 +10,10 @@ import js.html.XMLHttpRequest;
 
 class Binary
 {
-    public static function readFloat(_d:BytesInput):Float
-    {
-#if js
-        // readByte reads in sequentially(bigendian)
-        // flip the bytes to account for that
-        var bytes = [];
-        bytes.push(_d.readByte());
-        bytes.push(_d.readByte());
-        bytes.push(_d.readByte());
-        bytes.push(_d.readByte());
-        if (!_d.bigEndian)
-            bytes.reverse();
-        var sign = 1 - ((bytes[0] >> 7) << 1);
-        var exp = (((bytes[0] << 1) & 0xFF) | (bytes[1] >> 7)) - 127;
-        var sig = ((bytes[1] & 0x7F) << 16) | (bytes[2] << 8) | bytes[3];
-        if (sig == 0 && exp == -127)
-            return 0.0;
-        return sign*(1 + Math.pow(2, -23)*sig) * Math.pow(2, exp);
-#else
-        return _d.readFloat();
-#end
-    }
     public static function load(_url:String):Bytes
     {
 #if js
-        // parse the modeldata
+        // parse the binarydata
         var load_binary_resource = function(_url2) {
             var req = new XMLHttpRequest();
             req.open('GET', _url2, false);
@@ -61,8 +39,12 @@ class Binary
         }
 
         return Bytes.ofData(a);
+#elseif flash
+        return haxe.Resource.getBytes(_url);
+#elseif lime
+        return ByteArrayTools.toBytes(lime.utils.Assets.getBytes(_url));
 #else
-        return null;
+        return sys.io.File.getBytes(_url);
 #end
     }
 }

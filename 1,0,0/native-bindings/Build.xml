@@ -1,37 +1,25 @@
 <xml>
-
-    <!-- WARNING: The library will require msvcr100.dll at runtime. -->
-    <!--<set name="ABI" value="/MD" if="windows"/>-->
-
-    <!-- Install hxcpp and run with 'haxelib run hxcpp Build.xml' -->
-
     <include name="${HXCPP}/build-tool/BuildCommon.xml"/>
 
     <!-- Determine the output location for the NDLL -->
-
     <set name="LIB_DIR" value="-L" unless="windows"/>
     <set name="LIB_DIR" value="-libpath:" if="windows"/>
     <section if="linux">
-        <set name="LIB_PLATFORM" value="linux"/>
-        <set name="LIB_CPU_TYPE" value="x86" unless="HXCPP_M64"/>
-        <set name="LIB_CPU_TYPE" value="x64" if="HXCPP_M64"/>
+        <set name="LIB_PLATFORM" value="Linux"/>
+        <set name="LIB_CPU_TYPE" value="" unless="HXCPP_M64"/>
+        <set name="LIB_CPU_TYPE" value="64" if="HXCPP_M64"/>
     </section>
     <section if="windows">
-        <set name="LIB_PLATFORM" value="windows"/>
-        <set name="LIB_CPU_TYPE" value="x86" unless="HXCPP_M64"/>
-        <set name="LIB_CPU_TYPE" value="x64" if="HXCPP_M64"/>
+        <set name="LIB_PLATFORM" value="Windows"/>
+        <set name="LIB_CPU_TYPE" value="" unless="HXCPP_M64"/>
+        <set name="LIB_CPU_TYPE" value="64" if="HXCPP_M64"/>
     </section>
 
-    <set name="LIB_SUFFIX" value="${LIB_PLATFORM}-${LIB_CPU_TYPE}"/>
+    <set name="LIB_SUFFIX" value="${LIB_PLATFORM}${LIB_CPU_TYPE}"/>
 
     <!-- Specify the list of files to be compiled and the compile options. -->
-
     <set name="FOO3D_DIR" value="../../"/>
-
-    <files id="common">
-    </files>
-
-    <files id="foo3D">
+    <files id="foo3d">
         <compilerflag value="-I${FOO3D_DIR}/native-bindings/src"/>
         <compilerflag value="-Iinclude"/>
         <compilerflag value="-DWIN32" if="windows"/>
@@ -51,21 +39,25 @@
     </files>
 
     <!-- Generate the NDLL. -->
-
     <set name="configuration_type" value="dll" unless="iphone"/>
     <set name="configuration_type" value="static_link" if="iphone"/>
 
     <target id="foo3d-hx" output="foo3d" tool="linker" toolid="${configuration_type}">
 
+        <haxedef name="HXCPP_STACK_TRACE" if="debug" />
+        <haxedef name="HXCPP_STACK_LINE" if="debug" />
+        <haxedef name="HXCPP_DEBUG_LINK" if="debug" />
+
+        <!-- Use this switch to add/remove glut for window-management -->
+        <!--<haxedef name="use_glut" />-->
+        
         <libdir name="obj/lib"/>
         <outdir name="platforms/${LIB_SUFFIX}"/>
-        <ext value=".so" if="android"/>
         <ext value=".ndll" if="linux"/>
         <ext value=".ndll" if="windows"/>
 
-        <files id="common"/>
-        <files id="foo3D"/>
-        <files id="frame"/>
+        <files id="foo3d"/>
+        <files id="frame" if="use_glut"/>
         
         <!---------------------->
         <!-- System libraries -->

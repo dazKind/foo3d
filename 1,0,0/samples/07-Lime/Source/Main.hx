@@ -1,13 +1,16 @@
-package ;
+package;
 
-import foo3d.utils.Frame;
+import Binary;
 import foo3d.RenderDevice;
 import foo3d.RenderContext;
+import haxe.io.BytesOutput;
+import lime.Lime;
 import math.Mat44;
+import Md2Parser;
 
-class Sample 
-{
-    // data
+class Main {
+	
+	// data
     static var quadVerts:Array<Float> = [
         -0.5, 0.5, 0,
         0.5,-0.5, 0,
@@ -57,32 +60,14 @@ class Sample
     static var vertLayout:Int;
     static var prog:Int;
 
-    public function new () {}
-
-#if lime
-    public function ready (lime:lime.Lime):Void {
-        onCtxCreated(lime.render.direct_renderer_handle);
-    }
-    private function render ():Void {
-        onCtxUpdate(null);
-    }
-#else
-    static function main() 
-    {   
-        Frame.onCtxCreated.add(onCtxCreated);
-        Frame.onCtxLost.add(onCtxLost);
-        Frame.onCtxUpdate.add(onCtxUpdate);
-        
-        Frame.requestContext({name:"foo3d-stage", width:800, height:600});
-    }
-#end   
-    static function onCtxCreated(_ctx:RenderContext):Void
-    {
-        // create device and basic settings
-        rd = new RenderDevice(_ctx);
+	public function new () {}
+	
+	public function ready (lime:Lime):Void {
+		
+		// create device and basic settings
+        rd = new RenderDevice(lime.render.direct_renderer_handle);
         rd.setViewport(0, 0, 800, 600);
         rd.setScissorRect(0, 0, 800, 600);
-        
 
         // create the matrices for the scene
         var mProj:Mat44 = Mat44.createPerspLH(60, 800/600, 0.1, 1000.0);
@@ -93,9 +78,9 @@ class Sample
         vertLayout = rd.registerVertexLayout([
             new RDIVertexLayoutAttrib("vPos", 0, 3, 0),
         ]);
-        vBuf = rd.createVertexBuffer(12*4, ByteTools.floats(quadVerts), RDIBufferUsage.STATIC, 3);
-        iBuf = rd.createIndexBuffer(6*2, ByteTools.uShorts(quadIndices), RDIBufferUsage.STATIC);
-
+        vBuf = rd.createVertexBuffer(12, ByteTools.floats(quadVerts), RDIBufferUsage.STATIC, 3);
+        iBuf = rd.createIndexBuffer(6, ByteTools.uShorts(quadIndices), RDIBufferUsage.STATIC);
+        
         prog = rd.createProgram(vsSrc, fsSrc);
 
         // bind the shader, query the locations of the uniforms and upload new data
@@ -114,22 +99,20 @@ class Sample
         rd.setVertexLayout(vertLayout);
         rd.setVertexBuffer(0, vBuf);
         rd.setIndexBuffer(iBuf);
+	}
 
-        rd.setCullMode(0);
-    }
+	static var time:Float = haxe.Timer.stamp();
+    static var deltaTime:Float;
+    static var rot:Float = 0;
+    static var fpsTimer:Float = 0;
+    static var animFPS:Float = 0.25;    
+    static var scrollTimer:Float = 0;
+    static var scrollFPS:Float = 1.0;
+	
+	private function render ():Void {
 
-    static function onCtxLost(_ctx:RenderContext):Void
-    {
-        // clean up the resources
-        rd.destroyBuffer(vBuf);
-        rd.destroyBuffer(iBuf);
-        rd.destroyProgram(prog);
-    }
-
-    static function onCtxUpdate(_):Void
-    {
-        // clear framebuffer and draw the bound resources
+		// clear framebuffer and draw the bound resources
         rd.clear(RDIClearFlags.ALL, 0, 0, 0.8);
         rd.draw(RDIPrimType.TRIANGLES, 6, 0);
-    }
+	}
 }

@@ -8,8 +8,8 @@ import openfl.display.OpenGLView;
 import math.Mat44;
 import Binary;
 import Md2Parser;
-import foo3D.RenderDevice;
-import foo3D.RenderContext;
+import foo3d.RenderDevice;
+import foo3d.RenderContext;
 
 class Main extends Sprite {
 
@@ -282,8 +282,8 @@ class Main extends Sprite {
         rd.setBlendFunc(RDIBlendFactors.SRC_ALPHA, RDIBlendFactors.ONE_MINUS_SRC_ALPHA);
         rd.commitStates();
 
-        foo3D.impl.OpenGLRenderDevice.hx_gl_bindBuffer(RDIBufferType.VERTEX, null);
-        foo3D.impl.OpenGLRenderDevice.hx_gl_bindBuffer(RDIBufferType.INDEX, null);
+        foo3d.impl.OpenGLRenderDevice.hx_gl_bindBuffer(RDIBufferType.VERTEX, null);
+        foo3d.impl.OpenGLRenderDevice.hx_gl_bindBuffer(RDIBufferType.INDEX, null);
 #end
 
         time = curTime;

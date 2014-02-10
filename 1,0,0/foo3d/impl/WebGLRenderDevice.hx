@@ -1,12 +1,13 @@
-package foo3D.impl;
+package foo3d.impl;
 
-import foo3D.RenderDevice;
+import foo3d.RenderDevice;
 
 #if js
 
 import js.html.webgl.RenderingContext;
 import js.html.Float32Array;
-import js.html.UInt16Array;
+import js.html.Uint8Array;
+import js.html.Uint16Array;
 import js.html.ArrayBuffer;
 import js.html.webgl.Shader;
 import js.html.webgl.Program;
@@ -29,8 +30,6 @@ class WebGLRenderDevice extends AbstractRenderDevice
         m_caps.maxVertUniforms = m_ctx.getParameter(RenderingContext.MAX_VERTEX_UNIFORM_VECTORS);
         m_caps.maxColorAttachments = 1;
 
-        //m_ctx.pixelStorei(m_ctx.UNPACK_FLIP_Y_WEBGL, true);
-
         trace(m_caps.toString());
 
         /**/
@@ -48,14 +47,15 @@ class WebGLRenderDevice extends AbstractRenderDevice
         var buf:RDIBuffer = new RDIBuffer(
             RDIBufferType.VERTEX, 
             m_ctx.createBuffer(), 
-            _size * 4, 
+            _size, 
             _usageHint);
-    
+
         m_ctx.bindBuffer(buf.type, buf.glObj);
-        m_ctx.bufferData(buf.type, new Float32Array(untyped _data), _usageHint);
+        m_ctx.bufferData(buf.type, new Float32Array(new Uint8Array(_data.getData()).buffer), _usageHint);
         m_ctx.bindBuffer(buf.type, null);
         
         m_bufferMem += buf.size;
+
         return m_buffers.add( buf );
     }
 
@@ -64,11 +64,11 @@ class WebGLRenderDevice extends AbstractRenderDevice
         var buf:RDIBuffer = new RDIBuffer(
             RDIBufferType.INDEX, 
             m_ctx.createBuffer(), 
-            _size * 4, 
+            _size, 
             _usageHint);
-        
+
         m_ctx.bindBuffer(buf.type, buf.glObj);
-        m_ctx.bufferData(buf.type, new Uint16Array(untyped _data), _usageHint);
+        m_ctx.bufferData(buf.type, new Uint16Array(new Uint8Array(_data.getData()).buffer), _usageHint);
         m_ctx.bindBuffer(buf.type, null);
         
         m_bufferMem += buf.size;
@@ -90,7 +90,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
     {
         var buf:RDIBuffer = m_buffers.getRef(_handle);
         m_ctx.bindBuffer(buf.type, buf.glObj);
-        m_ctx.bufferSubData(buf.type, _offset, cast(_data, ArrayBuffer));
+        m_ctx.bufferSubData(buf.type, _offset, new Float32Array(new Uint8Array(_data.getData()).buffer));
         m_ctx.bindBuffer(buf.type, null);
     }
     
@@ -98,8 +98,12 @@ class WebGLRenderDevice extends AbstractRenderDevice
     {
         var buf:RDIBuffer = m_buffers.getRef(_handle);
         m_ctx.bindBuffer(buf.type, buf.glObj);
-        m_ctx.bufferSubData(buf.type, _offset, cast(_data, ArrayBuffer));
-        m_ctx.bindBuffer(buf.type, null);
+        m_ctx.bufferSubData(buf.type, _offset, new Uint16Array(new Uint8Array(_data.getData()).buffer));
+        
+        if(m_curIndexBuf != 0) // rebind the old one
+            m_ctx.bindBuffer(buf.type, m_buffers.getRef(m_curIndexBuf).glObj);
+        else
+            m_ctx.bindBuffer(buf.type, null);
     }
 
     override public function createTexture(_type:Int, _width:Int, _height:Int, _format:Int, _hasMips:Bool, _genMips:Bool, ?_hintIsRenderTarget=false):Int
@@ -562,6 +566,8 @@ class WebGLRenderDevice extends AbstractRenderDevice
             m_ctx.texParameteri(target, RenderingContext.TEXTURE_MIN_FILTER, minFiltersMips[(state & AbstractRenderDevice.SS_FILTER_MASK) >> AbstractRenderDevice.SS_FILTER_START]);
         else
             m_ctx.texParameteri(target, RenderingContext.TEXTURE_MIN_FILTER, magFilters[(state & AbstractRenderDevice.SS_FILTER_MASK) >> AbstractRenderDevice.SS_FILTER_START] );
+
+        m_ctx.pixelStorei(RenderingContext.UNPACK_FLIP_Y_WEBGL, 1);
         
         m_ctx.texParameteri( target, RenderingContext.TEXTURE_MAG_FILTER, magFilters[(state & AbstractRenderDevice.SS_FILTER_MASK) >> AbstractRenderDevice.SS_FILTER_START] );
         m_ctx.texParameteri( target, RenderingContext.TEXTURE_WRAP_S, wrapModes[(state & AbstractRenderDevice.SS_ADDRU_MASK) >> AbstractRenderDevice.SS_ADDRU_START] );

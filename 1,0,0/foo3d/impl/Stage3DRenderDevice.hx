@@ -1,6 +1,6 @@
-package foo3D.impl;
+package foo3d.impl;
 
-import foo3D.RenderDevice;
+import foo3d.RenderDevice;
 
 
 #if (flash || nme)
@@ -49,14 +49,13 @@ class Stage3DRenderDevice extends AbstractRenderDevice
 
     override public function createVertexBuffer(_size:Int, _data:VertexBufferData, ?_usageHint:Int = RDIBufferUsage.STATIC, ?_strideHint = 1):Int
     {
-        var numVerts:Int = Std.int(_size/_strideHint);
+        var numVerts:Int = Std.int(_size/(_strideHint*4));
         var buf:RDIBuffer = new RDIBuffer(
             RDIBufferType.VERTEX, 
             {vbuf:m_ctx.createVertexBuffer(numVerts, _strideHint), ibuf:null}, 
-            _size * 4,
+            _size,
             _usageHint);
-        
-        buf.glObj.vbuf.uploadFromVector(Vector.ofArray(_data), 0, numVerts);
+        buf.glObj.vbuf.uploadFromByteArray(_data.getData(), 0, 0, numVerts);
 
         m_bufferMem += buf.size;
         return m_buffers.add( buf );
@@ -64,13 +63,14 @@ class Stage3DRenderDevice extends AbstractRenderDevice
 
     override public function createIndexBuffer(_size:Int, _data:IndexBufferData, ?_usageHint:Int = RDIBufferUsage.STATIC):Int 
     {
+        var numInds = Std.int(_size/2);
         var buf:RDIBuffer = new RDIBuffer(
             RDIBufferType.INDEX, 
-            {vbuf:null, ibuf:m_ctx.createIndexBuffer(_size)}, 
-            _size * 4,
+            {vbuf:null, ibuf:m_ctx.createIndexBuffer(numInds)}, 
+            _size,
             _usageHint);
-        
-        buf.glObj.ibuf.uploadFromVector(Vector.ofArray(cast _data), 0, _size);
+
+        buf.glObj.ibuf.uploadFromByteArray(_data.getData(), 0, 0, numInds);
 
         m_bufferMem += buf.size;
         return m_buffers.add( buf );
@@ -95,13 +95,13 @@ class Stage3DRenderDevice extends AbstractRenderDevice
     override public function updateVertexBufferData(_handle:Int, _offset:Int, _size:Int, _data:VertexBufferData):Void 
     {
         var buf:RDIBuffer = m_buffers.getRef(_handle);
-        buf.glObj.vbuf.uploadFromVector(Vector.ofArray(_data), _offset, _size);
+        buf.glObj.vbuf.uploadFromByteArray(_data.getData(), _offset, 0, Std.int(_size/4));
     }
     
     override public function updateIndexBufferData(_handle:Int, _offset:Int, _size:Int, _data:IndexBufferData):Void 
     {
         var buf:RDIBuffer = m_buffers.getRef(_handle);
-        buf.glObj.ibuf.uploadFromVector(Vector.ofArray(cast _data), _offset, _size);
+        buf.glObj.ibuf.uploadFromByteArray(_data.getData(), _offset, 0, Std.int(_size/2));
     }
 
     override public function createTexture(_type:Int, _width:Int, _height:Int, _format:Int, 
@@ -551,12 +551,13 @@ class Stage3DRenderDevice extends AbstractRenderDevice
                 {
                     switch(m_newCullMode)
                     {
+                        // if the flipped constants baffle you, see this: http://stackoverflow.com/a/11700695
                         case RDICullModes.NONE:
                             m_ctx.setCulling(Context3DTriangleFace.NONE);
                         case RDICullModes.FRONT:
-                            m_ctx.setCulling(Context3DTriangleFace.FRONT);
-                        case RDICullModes.BACK:
                             m_ctx.setCulling(Context3DTriangleFace.BACK);
+                        case RDICullModes.BACK:
+                            m_ctx.setCulling(Context3DTriangleFace.FRONT);
                         case RDICullModes.FRONT_AND_BACK:
                             m_ctx.setCulling(Context3DTriangleFace.FRONT_AND_BACK);
                     }

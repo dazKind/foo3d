@@ -1,7 +1,7 @@
 package ;
 
-import foo3D.RenderDevice;
-import foo3D.RenderContext;
+import foo3d.RenderDevice;
+import foo3d.RenderContext;
 
 #if js
 
@@ -33,23 +33,25 @@ class SampleBase
             new RDIVertexLayoutAttrib("vUv", 0, 2, 3),
         ]);
         vbFsQuad = _rd.createVertexBuffer(
-            20, 
-            [   0.0, 1.0, 0.0,     0.0, 0.0,
+            20*4, 
+            ByteTools.floats([   
+                0.0, 1.0, 0.0,     0.0, 0.0,
                 1.0, 0.0, 0.0,     1.0, 1.0,
                 1.0, 1.0, 0.0,     1.0, 0.0,
-                0.0, 0.0, 0.0,     0.0, 1.0], 
+                0.0, 0.0, 0.0,     0.0, 1.0
+            ]),
             RDIBufferUsage.STATIC, 
             5
         );
         uvFsQuad = _rd.createVertexBuffer(
-            8, 
-            [0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0], 
+            8*4, 
+            ByteTools.floats([0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0]),
             RDIBufferUsage.STATIC, 
             2
         );
         ibFsQuad = _rd.createIndexBuffer(
-            6,
-            [1, 3, 0, 2, 1, 0],
+            6*2,
+            ByteTools.uShorts([1, 3, 0, 2, 1, 0]),
             RDIBufferUsage.STATIC
         );
     }
@@ -65,7 +67,7 @@ class SampleBase
     {
 #if js    
         (cast Browser.window).addEventListener("click", _cb, false);
-#elseif (flash||nme)
+#elseif flash
         Lib.current.stage.addEventListener(MouseEvent.CLICK, _cb);
 #end
     }
@@ -74,7 +76,7 @@ class SampleBase
     {
 #if js    
         (cast Browser.window).addEventListener("keydown", _cb, false);
-#elseif (flash||nme)
+#elseif flash
         Lib.current.stage.addEventListener(KeyboardEvent.KEY_DOWN, _cb);
 #end
     }

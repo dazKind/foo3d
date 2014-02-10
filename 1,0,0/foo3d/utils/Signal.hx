@@ -1,4 +1,4 @@
-package foo3D.utils;
+package foo3d.utils;
 
 class Signal<T> {
 

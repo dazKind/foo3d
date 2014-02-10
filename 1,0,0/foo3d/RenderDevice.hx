@@ -1,58 +1,62 @@
-package foo3D;
+package foo3d;
 
 #if js
 
-typedef BufferObjectType = js.html.webgl.Buffer;
-typedef TextureObjectType = js.html.webgl.Texture;
-typedef TextureFormatType = Null<Int>;
-typedef ShaderProgramType = js.html.webgl.Program;
-typedef UniformLocationType = js.html.webgl.UniformLocation;
-typedef FrameBufferObjectType = js.html.webgl.Framebuffer;
-typedef RenderBufferObjectType = js.html.webgl.Renderbuffer;
+    typedef BufferObjectType = js.html.webgl.Buffer;
+    typedef TextureObjectType = js.html.webgl.Texture;
+    typedef TextureFormatType = Null<Int>;
+    typedef ShaderProgramType = js.html.webgl.Program;
+    typedef UniformLocationType = js.html.webgl.UniformLocation;
+    typedef FrameBufferObjectType = js.html.webgl.Framebuffer;
+    typedef RenderBufferObjectType = js.html.webgl.Renderbuffer;
 
-typedef VertexBufferData = Array<Float>;
-typedef IndexBufferData = Array<Int>;
-typedef PixelData = Dynamic;
+    typedef VertexBufferData = haxe.io.Bytes;
+    typedef IndexBufferData = haxe.io.Bytes;
+    typedef PixelData = Dynamic;
 
-typedef RenderDevice = foo3D.impl.WebGLRenderDevice;
+    typedef RenderDevice = foo3d.impl.WebGLRenderDevice;
 
 #elseif (flash)
 
-import flash.display3D.Context3DTextureFormat;
-import flash.display3D.VertexBuffer3D;
-import flash.display3D.IndexBuffer3D;
-import flash.display3D.textures.TextureBase;
-import flash.display3D.Program3D;
+    import flash.display3D.Context3DTextureFormat;
+    import flash.display3D.VertexBuffer3D;
+    import flash.display3D.IndexBuffer3D;
+    import flash.display3D.textures.TextureBase;
+    import flash.display3D.Program3D;
 
-typedef BufferObjectType = { vbuf:VertexBuffer3D, ibuf:IndexBuffer3D };
-typedef TextureObjectType = TextureBase;
-typedef TextureFormatType = Context3DTextureFormat;
-typedef ShaderProgramType = { prog:Program3D, vsInfo:Dynamic, fsInfo:Dynamic };
-typedef UniformLocationType = { vsLoc:Null<Int>, fsLoc:Null<Int> };
-typedef FrameBufferObjectType = Dynamic;
-typedef RenderBufferObjectType = Null<Bool>;
+    typedef BufferObjectType = { vbuf:VertexBuffer3D, ibuf:IndexBuffer3D };
+    typedef TextureObjectType = TextureBase;
+    typedef TextureFormatType = Context3DTextureFormat;
+    typedef ShaderProgramType = { prog:Program3D, vsInfo:Dynamic, fsInfo:Dynamic };
+    typedef UniformLocationType = { vsLoc:Null<Int>, fsLoc:Null<Int> };
+    typedef FrameBufferObjectType = Dynamic;
+    typedef RenderBufferObjectType = Null<Bool>;
 
-typedef VertexBufferData = Array<Float>;
-typedef IndexBufferData = Array<Int>;
-typedef PixelData = flash.display.BitmapData; //flash.utils.ByteArray;
+    typedef VertexBufferData = haxe.io.Bytes;
+    typedef IndexBufferData = haxe.io.Bytes;
+    typedef PixelData = flash.display.BitmapData; //flash.utils.ByteArray;
 
-typedef RenderDevice = foo3D.impl.Stage3DRenderDevice;
+    typedef RenderDevice = foo3d.impl.Stage3DRenderDevice;
 
 #elseif cpp
 
-typedef BufferObjectType = Null<Int>;
-typedef TextureObjectType = Null<Int>;
-typedef TextureFormatType = Null<Int>;
-typedef ShaderProgramType = Null<Int>;
-typedef UniformLocationType = Null<Int>;
-typedef FrameBufferObjectType = Null<Int>;
-typedef RenderBufferObjectType = Null<Int>;
+    typedef BufferObjectType = Null<Int>;
+    typedef TextureObjectType = Null<Int>;
+    typedef TextureFormatType = Null<Int>;
+    typedef ShaderProgramType = Null<Int>;
+    typedef UniformLocationType = Null<Int>;
+    typedef FrameBufferObjectType = Null<Int>;
+    typedef RenderBufferObjectType = Null<Int>;
 
-typedef VertexBufferData = Array<Float>;
-typedef IndexBufferData = Array<Int>;
-typedef PixelData = haxe.io.BytesData;
+    typedef VertexBufferData = haxe.io.Bytes;
+    typedef IndexBufferData = haxe.io.Bytes;
+    typedef PixelData = haxe.io.BytesData;
 
-typedef RenderDevice = foo3D.impl.OpenGLRenderDevice;
+    #if foo3d_use_lime
+        typedef RenderDevice = foo3d.impl.LimeRenderDevice;
+    #else
+        typedef RenderDevice = foo3d.impl.OpenGLRenderDevice;
+    #end
 
 #end
 
@@ -472,6 +476,7 @@ class RDICullModes
 
 class RDIClearFlags
 {
+    inline public static var NONE:Int = 0x0;
     inline public static var COLOR:Int = 0x00000001;
     inline public static var DEPTH:Int = 0x00000002;
     inline public static var ALL:Int = 0xFFFFFFFF;

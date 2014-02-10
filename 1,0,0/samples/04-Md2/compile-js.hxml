@@ -1,5 +1,0 @@
--main Sample
--cp ../Common
--js js/Sample.js
--lib foo3D
--resource ../Common/resources/tekkblade.md2@blade_md2

@@ -1,6 +1,6 @@
-package foo3D.utils;
+package foo3d.utils;
 
-import foo3D.utils.Signal;
+import foo3d.utils.Signal;
 
 #if js
 
@@ -8,7 +8,7 @@ import js.Browser;
 import js.html.CanvasElement;
 import WebGLUtils;
 
-#elseif (flash||nme)
+#elseif flash
 
 import flash.Lib;
 import flash.events.Event;
@@ -51,7 +51,7 @@ class Frame {
             throw "[Foo3D - ERROR] - " + funcName + " -> " + untyped __js__("WebGLDebugUtils.glEnumToString(err)");
         };
         
-        untyped __js__("ctx = WebGLDebugUtils.makeDebugContext(this.m_ctx, logGLError, undefined);");
+        untyped __js__("foo3d.utils.Frame.ctx = WebGLDebugUtils.makeDebugContext(foo3d.utils.Frame.ctx, logGLError, undefined);");
 #end
 		(cast canvas).addEventListener("webglcontextlost", function(_evt) {
 	        trace("[Foo3D] - context lost");
@@ -67,7 +67,7 @@ class Frame {
 	    onCtxCreated.dispatch(ctx);
 	    // handle frame updates
 	    update();
-#elseif (flash||nme)   
+#elseif flash   
 		if (Firebug.detect())
             Firebug.redirectTraces();
 
@@ -76,29 +76,30 @@ class Frame {
                 if (ctx != null)
                 {
                     trace("[Foo3D] - context lost");
+                    Lib.current.removeEventListener(Event.ENTER_FRAME, update);
                     onCtxLost.dispatch(ctx);
                 }
+
                 ctx = _evt.target.context3D;
                 onCtxCreated.dispatch(ctx);
 
-                Lib.current.removeEventListener(Event.ENTER_FRAME, update);
                 Lib.current.addEventListener(Event.ENTER_FRAME, update);
             });
         Lib.current.stage.stage3Ds[0].requestContext3D();
-#elseif cpp
+#elseif (cpp && use_glut)
 		ctx = hx_glut_Setup(_config.name, _config.width, _config.height, update);
 		onCtxCreated.dispatch(ctx);
 		hx_glut_MainLoop();
 #end
 	}
 
-	static function update(#if (flash||nme) _evt:Dynamic #end):Void {
+	static function update(#if flash _evt:Dynamic #end):Void {
         var curTime = (haxe.Timer.stamp());
         deltaTime = curTime - time;
 #if js
         onCtxUpdate.dispatch();
         (cast Browser.window).requestAnimFrame(update);
-#elseif (flash||nme)
+#elseif flash
         if (ctx != null && ctx.driverInfo != "Disposed")
             onCtxUpdate.dispatch();
         ctx.present();
@@ -108,9 +109,9 @@ class Frame {
         time = curTime;
 	}
 
-#if cpp
-	static var hx_glut_Setup = cpp.Lib.load("foo3D", "hx_glut_Setup", 4);
-	static var hx_glut_MainLoop = cpp.Lib.load("foo3D", "hx_glut_MainLoop", 0);
+#if (cpp && use_glut)
+	static var hx_glut_Setup = cpp.Lib.load("foo3d", "hx_glut_Setup", 4);
+	static var hx_glut_MainLoop = cpp.Lib.load("foo3d", "hx_glut_MainLoop", 0);
 #end
 
 }

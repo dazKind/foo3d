@@ -1,7 +1,7 @@
 #include "Foo3D.h"
 #include <gl/glut.h>
 
-namespace foo3D {
+namespace foo3d {
 	// this is the wrapper for the foo3d render call
 	AutoGCRoot *onRender;
 	void render() {

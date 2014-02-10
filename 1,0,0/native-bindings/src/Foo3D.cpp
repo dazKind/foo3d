@@ -1,15 +1,21 @@
 #define IMPLEMENT_API
 #include "Foo3D.h"
+
 #include <gl/glew.h>
 #include <iostream>
-
 using namespace std;
 
-namespace foo3D {	
+namespace foo3d {	
+
+	const unsigned int color_buffers[] = {
+		GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3,  
+		GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5, GL_COLOR_ATTACHMENT6, GL_COLOR_ATTACHMENT7,  
+		GL_COLOR_ATTACHMENT8, GL_COLOR_ATTACHMENT9, GL_COLOR_ATTACHMENT10, GL_COLOR_ATTACHMENT11,  
+		GL_COLOR_ATTACHMENT12, GL_COLOR_ATTACHMENT13, GL_COLOR_ATTACHMENT14, GL_COLOR_ATTACHMENT15  
+	};
 
 	// renderdevice calls
 	void hx_rd_init(value _caps) {
-
 		GLenum err = glewInit();
 		if (err != GLEW_OK) {
 			cout<<"[Foo3D] - [ERROR] - glewInit failed, aborting."<<endl;
@@ -22,22 +28,6 @@ namespace foo3D {
 		char* version = (char*)glGetString(GL_VERSION);
 
 		cout << "[Foo3D] - Initializing GL backend using OpenGL driver " << version << " by " << vendor << " on " << renderer << endl;
-
-		/*
-		// must have
-		if (!GLEW_EXT_framebuffer_object) {
-			cout << "[Foo3D] - [ERROR] - EXT_framebuffer_object not supported" << endl;
-		}
-		if (!GLEW_EXT_texture_filter_anisotropic) {
-			cout << "[Foo3D] - [ERROR] - EXT_texture_filter_anisotropic not supported" << endl;
-		}
-		if (!GLEW_EXT_texture_compression_s3tc) {
-			cout << "[Foo3D] - [ERROR] - EXT_texture_compression_s3tc not supported" << endl;
-		}
-		if (!GLEW_EXT_texture_sRGB) {
-			cout << "[Foo3D] - [ERROR] - EXT_texture_sRGB not supported" << endl;
-		}
-		*/
 
 		// optional
 		alloc_field(_caps, val_id("texFloatSupport"), alloc_bool(GLEW_ARB_texture_float == 1));
@@ -52,7 +42,6 @@ namespace foo3D {
 		alloc_field(_caps, val_id("maxVertUniforms"), alloc_int(val));
 		glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &val);
 		alloc_field(_caps, val_id("maxColorAttachments"), alloc_int(val));
-
 	}
 	DEFINE_PRIM(hx_rd_init, 1);
 
@@ -70,13 +59,8 @@ namespace foo3D {
 	DEFINE_PRIM(hx_gl_bindBuffer, 2);
 
 	void hx_gl_bufferData(value _type, value _size, value _data, value _usageHint) {
-		float* f = val_array_float(_data);
-		if (f)
-			glBufferData(val_int(_type), val_int(_size), (void*)f, val_int(_usageHint));
-		else {
-			int* i = val_array_int(_data);
-			glBufferData(val_int(_type), val_int(_size), (void*)i, val_int(_usageHint));
-		}
+		int type = val_int(_type);
+		glBufferData(type, val_int(_size), (void*)buffer_data(val_to_buffer(_data)), val_int(_usageHint));
 	}
 	DEFINE_PRIM(hx_gl_bufferData, 4);
 
@@ -87,13 +71,8 @@ namespace foo3D {
 	DEFINE_PRIM(hx_gl_deleteBuffer, 1);
 
 	void hx_gl_bufferSubData(value _type, value _offset, value _size, value _data) {
-		float* f = val_array_float(_data);
-		if (f)
-			glBufferSubData(val_int(_type), val_int(_offset), val_int(_size), (void*)f);
-		else {
-			int* i = val_array_int(_data);
-			glBufferSubData(val_int(_type), val_int(_offset), val_int(_size), (void*)i);
-		}
+		int type = val_int(_type);
+		glBufferSubData(type, val_int(_offset), val_int(_size), (void*)buffer_data(val_to_buffer(_data)));
 	}
 	DEFINE_PRIM(hx_gl_bufferSubData, 4);
 
@@ -238,8 +217,6 @@ namespace foo3D {
 		glDeleteTextures(1, &h);
 	}
 	DEFINE_PRIM(hx_gl_deleteTexture, 1);
-
-
 
 	value hx_gl_createShader(value _type) {
 		return alloc_int(glCreateShader(val_int(_type)));
@@ -414,20 +391,17 @@ namespace foo3D {
 	}
 	DEFINE_PRIM(hx_gl_uniform1i, 2);
 
-	void hx_gl_drawRangeElements(value _primType, value _numInds, value _offset) {
+	void hx_gl_drawElements(value _primType, value _numInds, value _offset) {
 		int count = val_int(_numInds);
 		int start = val_int(_offset);
-		int end = start + count;
-		glDrawRangeElements(
+		glDrawElements(
 			val_int(_primType), 
-			start, 
-			end, 
 			count, 
-			GL_UNSIGNED_INT, // TODO: optimize this!
-			(char *)0 + (start*4)
+			GL_UNSIGNED_SHORT, // TODO: optimize this!
+			(char *)0 + (start*2)
 		);
 	}
-	DEFINE_PRIM(hx_gl_drawRangeElements, 3);
+	DEFINE_PRIM(hx_gl_drawElements, 3);
 
 	void hx_gl_drawArrays(value _primType, value _offset, value _size) {
 		glDrawArrays(val_int(_primType), val_int(_offset), val_int(_size));
@@ -440,8 +414,6 @@ namespace foo3D {
 		return alloc_int(res);
 	}
 	DEFINE_PRIM(hx_gl_getIntegerv, 1);
-
-
 
 	value hx_gl_genFramebuffer() {
 		unsigned int res;
@@ -487,12 +459,6 @@ namespace foo3D {
 	}
 	DEFINE_PRIM(hx_gl_drawBuffer, 1);
 
-	const unsigned int color_buffers[] = {
-		GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3,  
-		GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5, GL_COLOR_ATTACHMENT6, GL_COLOR_ATTACHMENT7,  
-		GL_COLOR_ATTACHMENT8, GL_COLOR_ATTACHMENT9, GL_COLOR_ATTACHMENT10, GL_COLOR_ATTACHMENT11,  
-		GL_COLOR_ATTACHMENT12, GL_COLOR_ATTACHMENT13, GL_COLOR_ATTACHMENT14, GL_COLOR_ATTACHMENT15  
-	};
 	void hx_gl_drawBuffers(value _numColBufs) {
 		glDrawBuffers(val_int(_numColBufs), color_buffers);
 	}
@@ -527,7 +493,6 @@ namespace foo3D {
 		glBlitFramebuffer(0, 0, w, h, 0, 0, w, h, mask, GL_NEAREST);
 	}
 	DEFINE_PRIM(hx_gl_blitFramebuffer, 3);
-
 
 	void hx_gl_depthMask(value _flag) {
 		glDepthMask(val_int(_flag));

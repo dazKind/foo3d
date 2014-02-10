@@ -1,6 +1,0 @@
--main Sample
--cp ../Common
--cpp cpp
--lib foo3D
--lib format
--D HXCPP_FLOAT32

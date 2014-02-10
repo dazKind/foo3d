@@ -4,9 +4,9 @@ import math.Mat44;
 import Binary;
 import Md2Parser;
 
-import foo3D.utils.Frame;
-import foo3D.RenderDevice;
-import foo3D.RenderContext;
+import foo3d.utils.Frame;
+import foo3d.RenderDevice;
+import foo3d.RenderContext;
 
 class Sample 
 {
@@ -70,14 +70,25 @@ class Sample
     static var mWorldLoc:UniformLocationType;
     static var interpLoc:UniformLocationType;
 
+    public function new() {}
+
+#if lime
+    public function ready (lime:lime.Lime):Void {
+        onCtxCreated(lime.render.direct_renderer_handle);
+    }
+    private function render ():Void {
+        onCtxUpdate(null);
+    }
+#else
     static function main() 
     {
         Frame.onCtxCreated.add(onCtxCreated);
         Frame.onCtxLost.add(onCtxLost);
         Frame.onCtxUpdate.add(onCtxUpdate);
         
-        Frame.requestContext({name:"foo3D-stage", width:800, height:600});
+        Frame.requestContext({name:"foo3d-stage", width:800, height:600});
     }
+#end
 
     static function onCtxCreated(_ctx:RenderContext):Void
     {
@@ -91,7 +102,7 @@ class Sample
         mWorld = new Mat44();
 
         // parse the modeldata
-        md2 = Md2Parser.run(haxe.Resource.getBytes("blade_md2"));
+        md2 = Md2Parser.run(Binary.load(#if !lime "../../Common/" + #end "resources/tekkblade.md2"));
 
         // move all frames into individual VBOs
         vBuffers = [];
@@ -113,7 +124,7 @@ class Sample
                 verts.push(f.verts[md2.triangles[j].vertInds[2]].y);
                 verts.push(f.verts[md2.triangles[j].vertInds[2]].z);
             }
-            vBuffers.push(rd.createVertexBuffer(verts.length, verts, RDIBufferUsage.STATIC, 3));
+            vBuffers.push(rd.createVertexBuffer(verts.length*4, ByteTools.floats(verts), RDIBufferUsage.STATIC, 3));
         }
         // move the uvs into a VBO
         var uv:Array<Float> = [];
@@ -137,12 +148,12 @@ class Sample
             new RDIVertexLayoutAttrib("vPosDst", 1, 3, 0),
             new RDIVertexLayoutAttrib("vUv", 2, 2, 0),
         ]);
-        uvBuf = rd.createVertexBuffer(uv.length, uv, RDIBufferUsage.STATIC, 2);
-        iBuf = rd.createIndexBuffer(ind.length, ind, RDIBufferUsage.STATIC);
+        uvBuf = rd.createVertexBuffer(uv.length*4, ByteTools.floats(uv), RDIBufferUsage.STATIC, 2);
+        iBuf = rd.createIndexBuffer(ind.length*2, ByteTools.uShorts(ind), RDIBufferUsage.STATIC);
         prog = rd.createProgram(vsSrc, fsSrc);
 
         // create and load the skin for the model
-        var texSrc:String = "../../Common/resources/tekkblade.png";
+        var texSrc:String = #if !lime "../../Common/" + #end "resources/tekkblade.png";
         tex = rd.createTexture(RDITextureTypes.TEX2D, 256, 256, RDITextureFormats.RGBA8, false, false);
         rd.uploadTextureData(tex, 0, 0, null);
 
@@ -186,10 +197,15 @@ class Sample
     static var rot:Float = 0;
     static var fpsTimer:Float = 0;
     static var animFPS:Float = 0.1;
+    static var deltaTime:Float = 0;
+    static var time:Float = haxe.Timer.stamp();
     static function onCtxUpdate(_):Void
     {
+        var curTime = (haxe.Timer.stamp());
+        deltaTime = curTime - time;
+
         // animate the model
-        fpsTimer += Frame.deltaTime;
+        fpsTimer += deltaTime;
         if (fpsTimer >= animFPS)
         {
             curFrame = (curFrame + 1 >= md2.header.numFrames) ? 0 : curFrame + 1;
@@ -197,14 +213,15 @@ class Sample
             fpsTimer -= animFPS;
         }
         var t:Float = fpsTimer/animFPS;
-        if (t < 0) t = 0;
-        if (t > 1) t = 1;
+        if (t < 0) t = 0.0;
+        if (t > 1) t = 1.0;
+
         rd.setUniform(interpLoc, RDIShaderConstType.FLOAT, [t]);
         rd.setVertexBuffer(0, vBuffers[curFrame]);
         rd.setVertexBuffer(1, vBuffers[nextFrame]);
 
         // rotate the model
-        rot += 10 * Frame.deltaTime;
+        rot += 10 * deltaTime;
         mWorld.recompose(
             math.Quat.rotateY(rot),
             math.Vec3.create(0.1, 0.1, 0.1),
@@ -215,5 +232,7 @@ class Sample
         // clear framebuffer and draw the bound resources
         rd.clear(RDIClearFlags.ALL, 0, 0, 0.8);
         rd.draw(RDIPrimType.TRIANGLES, md2.header.numTris * 3, 0);
+
+        time = curTime;
     }
 }

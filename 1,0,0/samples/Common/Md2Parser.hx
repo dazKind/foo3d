@@ -289,13 +289,13 @@ class Md2Parser
                 normals:[]
             };
 
-            frame.scale.x = Binary.readFloat(r);
-            frame.scale.y = Binary.readFloat(r);
-            frame.scale.z = Binary.readFloat(r);
+            frame.scale.x = r.readFloat();
+            frame.scale.y = r.readFloat();
+            frame.scale.z = r.readFloat();
 
-            frame.translate.x = Binary.readFloat(r);
-            frame.translate.y = Binary.readFloat(r);
-            frame.translate.z = Binary.readFloat(r);
+            frame.translate.x = r.readFloat();
+            frame.translate.y = r.readFloat();
+            frame.translate.z = r.readFloat();
 
             frame.name = r.readString(16);
 

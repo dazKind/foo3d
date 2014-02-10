@@ -6,16 +6,21 @@
 package ;
 import haxe.io.Bytes;
 import haxe.io.BytesData;
+
+#if flash
 import flash.utils.ByteArray;
+#elseif lime
+import lime.utils.ByteArray;
+#end
 
 class ByteArrayTools
 {
 
 	static public function toBytes(byteArray:ByteArray):Bytes 
 	{
-#if (flash)
+#if flash
 		var bytes = Bytes.ofData(byteArray);
-#elseif (html5)
+#elseif html5
 		var arrayBytes = new Array<Int>();
 		for (i in 0...byteArray.length) arrayBytes.push(byteArray.readByte());
 		var bytes = Bytes.ofData(arrayBytes);
