@@ -40,7 +40,7 @@ Or:
 * android(lime&gles2)
 
 #### Notes:
-* Documentation is almost non-existant. I'm currently fixing this.
+* Documentation is almost non-existant. I'm currently fixing this. Up until then please refer to the samples.
 * The flash target needs AGAL shaders while the rest of the targets use glsl!
 * Make sure you got foo3d.ndll in your path/sample-folders. It's compiled via hxcpp. Check the content of the "native-bindings"-folder.
 * Foo3D uses GLUT for the optional creation of the window and the context. Make sure you got glut32.dll in your path if you use the Frame-Class(like most of the samples).
