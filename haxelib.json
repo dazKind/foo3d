@@ -1,0 +1,11 @@
+{
+	"name": "foo3d",
+	"url": "http://github.com/dazKind/foo3D",
+	"license": "MIT",
+	"tags": [],
+	"description": "A crossplatform lowlevel 3d rendering api written in Haxe",
+	"version": "1.0.0",
+	"releasenote": "Initial version",
+	"contributors": ["dazKind"],
+	"dependencies": {}
+}
