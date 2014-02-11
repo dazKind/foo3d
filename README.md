@@ -1,4 +1,4 @@
-foo3D
+foo3d
 =====
 
 #### Crossplatform lowlevel 3D rendering API in Haxe
