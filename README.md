@@ -9,6 +9,16 @@ Foo3D is a crossplatform low-level rendering API written in Haxe. It's not a 3D 
 
 Foo3D doesnt make any assumptions about your project-setup. All it needs is a 3D-context in order to work. You are free to allocate a context on your own and hand it over to Foo3D's RenderDevice via DI. Alternatively you can use the supplied utility-classes to receive a window/canvas/stage + context to render to.
 
+You may install using:
+
+	haxelib git foo3d https://github.com/dazKind/foo3d
+	
+Or:
+
+	git clone https://github.com/dazKind/foo3d
+	haxelib dev foo3d foo3d
+
+
 #### Features:
 * Haxe3 ready!
 * a common interface across different targets.
@@ -25,10 +35,13 @@ Foo3D doesnt make any assumptions about your project-setup. All it needs is a 3D
 #### Targets:
 * js(webgl)
 * flash(stage3D)
-* cpp (windows-x86 & ogl)
+* cpp(windows-x86&ogl)
+* cpplime(lime&ogl)
+* android(lime&gles2)
 
 #### Notes:
-* the html5-target has no longer a dependency on the xirsys/stdjs lib!
+* Documentation is almost non-existant. I'm currently fixing this.
+* The flash target needs AGAL shaders while the rest of the targets use glsl!
 * Make sure you got foo3d.ndll in your path/sample-folders. It's compiled via hxcpp. Check the content of the "native-bindings"-folder.
 * Foo3D uses GLUT for the optional creation of the window and the context. Make sure you got glut32.dll in your path if you use the Frame-Class(like most of the samples).
 * On older systems Webgl can be blacklisted in your browser. Try setting "webgl.force-enabled;true" via "about:config".
