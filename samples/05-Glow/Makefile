@@ -27,6 +27,5 @@ clean:
 	rm -rf cpp
 	rm -rf android
 	rm -rf windows
-	rm -rf windowslime
 
 .PHONY: html5 flash windows android all
