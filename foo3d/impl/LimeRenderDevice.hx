@@ -6,7 +6,7 @@ import lime.utils.Libs;
 class LimeRenderDevice extends AbstractRenderDevice
 {   
     inline public static var UNSIGNED_BYTE:Int = 0x1401;
-    public static inline var UNSIGNED_SHORT:Int = 0x1403;
+    inline public static var UNSIGNED_SHORT:Int = 0x1403;
     inline public static var FLOAT:Int = 0x1406;
     inline public static var RGBA:Int = 0x1908;
     inline public static var CULL_FACE:Int = 0x0B44;
@@ -52,7 +52,7 @@ class LimeRenderDevice extends AbstractRenderDevice
     inline public static var FRAMEBUFFER_COMPLETE:Int = 0x8CD5;
     inline public static var MAX_VERTEX_ATTRIBS:Int = 0x8869;
     inline public static var MAX_VERTEX_UNIFORM_VECTORS:Int = 0x8DFB;
-    inline public static var GL_MAX_COLOR_ATTACHMENTS:Int = 0x8CDF;
+    inline public static var MAX_COLOR_ATTACHMENTS:Int = 0x8CDF;
 
     public function new(_ctx:RenderContext)
     {
@@ -67,9 +67,8 @@ class LimeRenderDevice extends AbstractRenderDevice
         m_caps.rtMultisampling = false;
 
         m_caps.maxVertAttribs = lime_gl_get_parameter(MAX_VERTEX_ATTRIBS);
-        m_caps.maxVertUniforms = 254; //lime_gl_get_parameter(MAX_VERTEX_UNIFORM_VECTORS);
-        m_caps.maxColorAttachments = 1; //lime_gl_get_parameter(GL_MAX_COLOR_ATTACHMENTS);
-        
+        m_caps.maxVertUniforms = lime_gl_get_parameter(MAX_VERTEX_UNIFORM_VECTORS);
+        m_caps.maxColorAttachments = 1;
 
         var supportedExtensions:Array<String> = new Array<String>();
         lime_gl_get_supported_extensions(supportedExtensions);
@@ -464,26 +463,24 @@ class LimeRenderDevice extends AbstractRenderDevice
 
     override public function destroyRenderBuffer(_handle:Int):Void 
     {
-        throw "MISSING API";
-        /*
+
         var rb = m_renBuffers.getRef(_handle);
         if (rb.depthBufObj != null) 
-            m_ctx.deleteRenderbuffer(rb.depthBufObj);
+            lime_gl_delete_render_buffer(rb.depthBufObj);
         rb.depthBufObj = null;
 
         for (i in 0...m_caps.maxColorAttachments)
         {
             if (rb.colTexs[i] != 0) 
-                this.destroyTexture(rb.colTexs[i]);
+                lime_gl_delete_texture(rb.colTexs[i]);
             rb.colTexs[i] = 0;
         }
 
         if (rb.fbo != null)
-            m_ctx.deleteFramebuffer(rb.fbo);
+            lime_gl_delete_framebuffer(rb.fbo);
         rb.fbo = null;
 
         m_renBuffers.remove(_handle);
-        */
     }
 
     override public function getRenderBufferTex(_handle:Int, ?_bufIndex:Int=0):Int
@@ -617,7 +614,7 @@ class LimeRenderDevice extends AbstractRenderDevice
                     else
                     {
                         lime_gl_enable(CULL_FACE);
-                        //m_ctx.cullFace(m_newCullMode);
+                        lime_gl_cull_face(m_newCullMode);
                     }
                     m_curCullMode = m_newCullMode;
                 }
@@ -835,8 +832,11 @@ class LimeRenderDevice extends AbstractRenderDevice
     private static var lime_gl_create_render_buffer = Libs.load("lime", "lime_gl_create_render_buffer", 0);
     private static var lime_gl_create_shader = Libs.load("lime", "lime_gl_create_shader", 1);
     private static var lime_gl_create_texture = Libs.load("lime", "lime_gl_create_texture", 0);
+    private static var lime_gl_cull_face = Libs.load("lime", "lime_gl_cull_face", 1);
     private static var lime_gl_delete_buffer = Libs.load("lime", "lime_gl_delete_buffer", 1);
+    private static var lime_gl_delete_framebuffer = Libs.load("lime","lime_gl_delete_framebuffer", 1);
     private static var lime_gl_delete_program = Libs.load("lime", "lime_gl_delete_program", 1);
+    private static var lime_gl_delete_render_buffer = Libs.load("lime","lime_gl_delete_render_buffer", 1);
     private static var lime_gl_delete_shader = Libs.load("lime", "lime_gl_delete_shader", 1);
     private static var lime_gl_delete_texture = Libs.load("lime", "lime_gl_delete_texture", 1);
     private static var lime_gl_depth_func = Libs.load("lime", "lime_gl_depth_func", 1);
