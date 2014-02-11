@@ -29,7 +29,7 @@ Or:
   * Renderbuffers
 * low-level management of GPU-resources
 * low-level renderstatemanagement
-* optional 3D-context creation(canvas3d, stage3d, glut)
+* optional 3D-context creation(canvas3d, stage3d, glut, lime)
 * many samples
 
 #### Targets:
