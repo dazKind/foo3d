@@ -134,7 +134,7 @@ class LimeRenderDevice extends AbstractRenderDevice
     {
         var buf:RDIBuffer = m_buffers.getRef(_handle);
         lime_gl_bind_buffer(buf.type, buf.glObj);
-        lime_gl_buffer_sub_data(buf.type, _offset, lime.utils.ByteArray.fromBytes(_data), 0, _data.length );
+        lime_gl_buffer_sub_data(buf.type, _offset, lime.utils.ByteArray.fromBytes(_data), 0, _size);
         lime_gl_bind_buffer(buf.type, null);
     }
     

@@ -398,7 +398,7 @@ namespace foo3d {
 			val_int(_primType), 
 			count, 
 			GL_UNSIGNED_SHORT, // TODO: optimize this!
-			(char *)0 + (start*2)
+			(char *)0 + (start)
 		);
 	}
 	DEFINE_PRIM(hx_gl_drawElements, 3);

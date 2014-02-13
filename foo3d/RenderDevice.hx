@@ -181,6 +181,7 @@ class RDIVertexLayout
 
 class RDIBufferUsage
 {
+    inline public static var STREAM:Int     = 0x88E0;
     inline public static var STATIC:Int     = 0x88E4;
     inline public static var DYNAMIC:Int    = 0x88E8;
 }

@@ -116,7 +116,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
     {
         var buf:RDIBuffer = m_buffers.getRef(_handle);
         hx_gl_bindBuffer(buf.type, buf.glObj);
-        hx_gl_bufferSubData(buf.type, _offset, _data.length, _data.getData());
+        hx_gl_bufferSubData(buf.type, _offset, _size, _data.getData());
         hx_gl_bindBuffer(buf.type, null);
     }
     
