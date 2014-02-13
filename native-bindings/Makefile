@@ -18,4 +18,4 @@ clean:
 	rm -f *.pdb
 	rm -f all_objs
 
-.PHONY: all clean
+.PHONY: all clean install
