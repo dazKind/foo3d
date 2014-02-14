@@ -53,15 +53,20 @@ class LimeRenderDevice extends AbstractRenderDevice
     inline public static var MAX_VERTEX_ATTRIBS:Int = 0x8869;
     inline public static var MAX_VERTEX_UNIFORM_VECTORS:Int = 0x8DFB;
     inline public static var MAX_COLOR_ATTACHMENTS:Int = 0x8CDF;
+    inline public static var FRAMEBUFFER_BINDING:Int = 0x8CA6;
+
+    var _defaultFbo:Int;
 
     public function new(_ctx:RenderContext)
     {
+        _defaultFbo = 0;
         super(_ctx);
     }
     
     override function init():Void
     {        
-        
+        _defaultFbo = lime_gl_get_parameter(FRAMEBUFFER_BINDING);
+
         m_caps.texFloatSupport = false;
         m_caps.texNPOTSupport = false;
         m_caps.rtMultisampling = false;
@@ -499,7 +504,7 @@ class LimeRenderDevice extends AbstractRenderDevice
         if (_handle == 0)
         {
             // set to main backbuffer
-            lime_gl_bind_framebuffer(FRAMEBUFFER, null);
+            lime_gl_bind_framebuffer(FRAMEBUFFER, _defaultFbo);
         }
         else
         {
