@@ -28,11 +28,11 @@ class WebGLRenderDevice extends AbstractRenderDevice
 
         m_caps.maxVertAttribs = m_ctx.getParameter(RenderingContext.MAX_VERTEX_ATTRIBS);
         m_caps.maxVertUniforms = m_ctx.getParameter(RenderingContext.MAX_VERTEX_UNIFORM_VECTORS);
+        m_caps.maxTextureUnits = m_ctx.getParameter(RenderingContext.MAX_COMBINED_TEXTURE_IMAGE_UNITS);
         m_caps.maxColorAttachments = 1;
 
         trace(m_caps.toString());
 
-        /**/
         var supportedExtensions:Array<String> = m_ctx.getSupportedExtensions();
         var e:String = "[Foo3D] - Supported extensions by browser:\n";
         for (s in supportedExtensions)
@@ -123,16 +123,16 @@ class WebGLRenderDevice extends AbstractRenderDevice
         }        
 
         tex.glObj = m_ctx.createTexture();
-        m_ctx.activeTexture(RenderContext.TEXTURE15);
+        m_ctx.activeTexture(RenderingContext.TEXTURE0+m_lastTexUnit);
         m_ctx.bindTexture(_type, tex.glObj);
 
         tex.samplerState = 0;
         applySamplerState(tex);
 
         m_ctx.bindTexture(_type, null);
-        if (m_texSlots[15].texObj > 0)
+        if (m_texSlots[m_lastTexUnit].texObj > 0)
         {
-            var t:RDITexture = m_textures.getRef(m_texSlots[15].texObj);
+            var t:RDITexture = m_textures.getRef(m_texSlots[m_lastTexUnit].texObj);
             m_ctx.bindTexture(t.type, t.glObj);
         }
         
@@ -151,7 +151,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
     {
         var tex:RDITexture = m_textures.getRef(_handle);
 
-        m_ctx.activeTexture(RenderContext.TEXTURE15);
+        m_ctx.activeTexture(RenderingContext.TEXTURE0+m_lastTexUnit);
         m_ctx.bindTexture(tex.type, tex.glObj);
 
         var inputFormat:Int = RenderContext.RGBA;
@@ -189,9 +189,9 @@ class WebGLRenderDevice extends AbstractRenderDevice
 
         m_ctx.bindTexture(tex.type, null);
 
-        if (m_texSlots[15].texObj > 0)
+        if (m_texSlots[m_lastTexUnit].texObj > 0)
         {
-            var t:RDITexture = m_textures.getRef(m_texSlots[15].texObj);
+            var t:RDITexture = m_textures.getRef(m_texSlots[m_lastTexUnit].texObj);
             m_ctx.bindTexture(t.type, t.glObj);
         }
     }
@@ -455,7 +455,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
         else
         {
             // reset all texture bindings
-            for (i in 0...16)
+            for (i in 0...m_caps.maxTextureUnits)
                 this.setTexture(i, 0, 0);
             this.commitStates(ARD.PM_TEXTURES);
 
@@ -689,7 +689,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
             // Bind textures and set sampler state
             if((mask & ARD.PM_TEXTURES) == ARD.PM_TEXTURES)
             {
-                for (i in 0...16)
+                for (i in 0...m_caps.maxTextureUnits)
                 {
                     m_ctx.activeTexture(RenderingContext.TEXTURE0+i);
 

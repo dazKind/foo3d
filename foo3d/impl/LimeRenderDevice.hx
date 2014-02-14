@@ -25,7 +25,6 @@ class LimeRenderDevice extends AbstractRenderDevice
     inline public static var TEXTURE_WRAP_S:Int = 0x2802;
     inline public static var TEXTURE_WRAP_T:Int = 0x2803;
     inline public static var TEXTURE0:Int = 0x84C0;
-    inline public static var TEXTURE15:Int = 0x84CF;
     inline public static var TEXTURE_CUBE_MAP_POSITIVE_X:Int = 0x8515;
     inline public static var DEPTH_BUFFER_BIT:Int = 0x00000100;
     inline public static var COLOR_BUFFER_BIT:Int = 0x00004000;
@@ -54,9 +53,10 @@ class LimeRenderDevice extends AbstractRenderDevice
     inline public static var MAX_VERTEX_UNIFORM_VECTORS:Int = 0x8DFB;
     inline public static var MAX_COLOR_ATTACHMENTS:Int = 0x8CDF;
     inline public static var FRAMEBUFFER_BINDING:Int = 0x8CA6;
+    inline public static var MAX_COMBINED_TEXTURE_IMAGE_UNITS:Int = 0x8B4D;
 
     var _defaultFbo:Int;
-
+ 
     public function new(_ctx:RenderContext)
     {
         _defaultFbo = 0;
@@ -73,6 +73,7 @@ class LimeRenderDevice extends AbstractRenderDevice
 
         m_caps.maxVertAttribs = lime_gl_get_parameter(MAX_VERTEX_ATTRIBS);
         m_caps.maxVertUniforms = lime_gl_get_parameter(MAX_VERTEX_UNIFORM_VECTORS);
+        m_caps.maxTextureUnits = lime_gl_get_parameter(MAX_COMBINED_TEXTURE_IMAGE_UNITS);
         m_caps.maxColorAttachments = 1;
 
         var supportedExtensions:Array<String> = new Array<String>();
@@ -172,16 +173,16 @@ class LimeRenderDevice extends AbstractRenderDevice
         }        
 
         tex.glObj = lime_gl_create_texture();
-        lime_gl_active_texture(TEXTURE15);
+        lime_gl_active_texture(TEXTURE0+m_lastTexUnit);
         lime_gl_bind_texture(_type, tex.glObj);
 
         tex.samplerState = 0;
         applySamplerState(tex);
 
         lime_gl_bind_texture(_type, null);
-        if (m_texSlots[15].texObj > 0)
+        if (m_texSlots[m_lastTexUnit].texObj > 0)
         {
-            var t:RDITexture = m_textures.getRef(m_texSlots[15].texObj);
+            var t:RDITexture = m_textures.getRef(m_texSlots[m_lastTexUnit].texObj);
             lime_gl_bind_texture(t.type, t.glObj);
         }
         
@@ -200,7 +201,7 @@ class LimeRenderDevice extends AbstractRenderDevice
     {
         var tex:RDITexture = m_textures.getRef(_handle);
 
-        lime_gl_active_texture(TEXTURE15);
+        lime_gl_active_texture(TEXTURE0+m_lastTexUnit);
         lime_gl_bind_texture(tex.type, tex.glObj);
 
         var inputFormat:Int = RGBA;
@@ -237,9 +238,9 @@ class LimeRenderDevice extends AbstractRenderDevice
 
         lime_gl_bind_texture(tex.type, null);
 
-        if (m_texSlots[15].texObj > 0)
+        if (m_texSlots[m_lastTexUnit].texObj > 0)
         {
-            var t:RDITexture = m_textures.getRef(m_texSlots[15].texObj);
+            var t:RDITexture = m_textures.getRef(m_texSlots[m_lastTexUnit].texObj);
             lime_gl_bind_texture(t.type, t.glObj);
         }
     }
@@ -509,7 +510,7 @@ class LimeRenderDevice extends AbstractRenderDevice
         else
         {
             // reset all texture bindings
-            for (i in 0...16)
+            for (i in 0...m_caps.maxTextureUnits)
                 this.setTexture(i, 0, 0);
             this.commitStates(ARD.PM_TEXTURES);
 
@@ -704,7 +705,7 @@ class LimeRenderDevice extends AbstractRenderDevice
             // Bind textures and set sampler state
             if((mask & ARD.PM_TEXTURES) == ARD.PM_TEXTURES)
             {
-                for (i in 0...16)
+                for (i in 0...m_caps.maxTextureUnits)
                 {
                     lime_gl_active_texture(TEXTURE0+i);
 

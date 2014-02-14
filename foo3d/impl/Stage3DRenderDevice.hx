@@ -40,6 +40,7 @@ class Stage3DRenderDevice extends AbstractRenderDevice
 
         m_caps.maxVertAttribs = 8;
         m_caps.maxVertUniforms = 128;
+        m_caps.maxTextureUnits = 8; // flash only supports 8 texunits
         m_caps.maxColorAttachments = 1;
 
         trace(m_caps.toString());
@@ -624,8 +625,7 @@ class Stage3DRenderDevice extends AbstractRenderDevice
             // Bind textures and set sampler state
             if((mask & ARD.PM_TEXTURES) == ARD.PM_TEXTURES)
             {
-                //for (i in 0...16)
-                for (i in 0...8) // flash only supports 8 texunits
+                for (i in 0...m_caps.maxTextureUnits)
                 {
                     if (m_texSlots[i].texObj != 0)
                     {

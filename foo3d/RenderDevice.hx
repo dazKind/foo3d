@@ -110,7 +110,8 @@ class RDIDeviceCaps
     public var rtMultisampling:Bool;
     public var maxVertAttribs:Int;
     public var maxVertUniforms:Int;
-    public var maxColorAttachments:Int; 
+    public var maxColorAttachments:Int;
+    public var maxTextureUnits:Int;
     
     public function new()
     {
@@ -118,6 +119,7 @@ class RDIDeviceCaps
         texNPOTSupport = false;
         maxVertAttribs = 0;
         maxVertUniforms = 0;
+        maxTextureUnits = 0;
         maxColorAttachments = 1; // no mrt?
     }
 
@@ -132,6 +134,7 @@ class RDIDeviceCaps
         res += "rtMultisampling = " + rtMultisampling + "\n";
         res += "maxVertAttribs = " + maxVertAttribs + "\n";
         res += "maxVertUniforms = " + maxVertUniforms + "\n";
+        res += "maxTextureUnits = " + maxTextureUnits + "\n";
         res += "maxColorAttachments = " + maxColorAttachments + "\n";
         
         return res;
@@ -529,6 +532,7 @@ class AbstractRenderDevice
 
     public var m_ctx:RenderContext;
     var m_caps:RDIDeviceCaps;
+    var m_lastTexUnit:Int;
 
     // viewport rect
     var m_vpX:Int;
@@ -655,6 +659,8 @@ class AbstractRenderDevice
         m_numVertexLayouts = 0;
 
         init();
+
+        m_lastTexUnit = m_caps.maxTextureUnits-1;
     }
     
     function init():Void
@@ -748,7 +754,7 @@ class AbstractRenderDevice
         m_curDepthTest = RDITestModes.GREATER;
         m_newDepthTest = RDITestModes.LESS;
 
-        for (i in 0...16)
+        for (i in 0...m_caps.maxTextureUnits)
             setTexture(i, 0, 0);
 
         m_activeVertexAttribsMask = 0;
