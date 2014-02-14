@@ -40,6 +40,8 @@ namespace foo3d {
 		alloc_field(_caps, val_id("maxVertAttribs"), alloc_int(val));
 		glGetIntegerv(GL_MAX_VERTEX_UNIFORM_VECTORS, &val);
 		alloc_field(_caps, val_id("maxVertUniforms"), alloc_int(val));
+		glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &val);
+		alloc_field(_caps, val_id("maxTextureUnits"), alloc_int(val));
 		glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &val);
 		alloc_field(_caps, val_id("maxColorAttachments"), alloc_int(val));
 	}

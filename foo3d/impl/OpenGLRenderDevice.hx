@@ -23,7 +23,6 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
 	inline public static var TEXTURE_WRAP_S:Int = 0x2802;
 	inline public static var TEXTURE_WRAP_T:Int = 0x2803;
 	inline public static var TEXTURE0:Int = 0x84C0;
-	inline public static var TEXTURE15:Int = 0x84CF;
 	inline public static var TEXTURE_CUBE_MAP_POSITIVE_X:Int = 0x8515;
 	inline public static var DEPTH_BUFFER_BIT:Int = 0x00000100;
 	inline public static var COLOR_BUFFER_BIT:Int = 0x00004000;
@@ -149,16 +148,16 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
         tex.glFmt = _format;
 
         tex.glObj = hx_gl_createTexture();
-        hx_gl_activeTexture(TEXTURE15);
+        hx_gl_activeTexture(TEXTURE0+m_lastTexUnit);
         hx_gl_bindTexture(_type, tex.glObj);
 
         tex.samplerState = 0;
         applySamplerState(tex);
 
         hx_gl_bindTexture(_type, null);
-        if (m_texSlots[15].texObj > 0)
+        if (m_texSlots[m_lastTexUnit].texObj > 0)
         {
-            var t:RDITexture = m_textures.getRef(m_texSlots[15].texObj);
+            var t:RDITexture = m_textures.getRef(m_texSlots[m_lastTexUnit].texObj);
             hx_gl_bindTexture(t.type, t.glObj);
         }
         
@@ -177,7 +176,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
     {
         var tex:RDITexture = m_textures.getRef(_handle);
 
-        hx_gl_activeTexture(TEXTURE15);
+        hx_gl_activeTexture(TEXTURE0+m_lastTexUnit);
         hx_gl_bindTexture(tex.type, tex.glObj);
 
         var inputFormat:Int = RGBA;
@@ -213,9 +212,9 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
 
         hx_gl_bindTexture(tex.type, null);
 
-        if (m_texSlots[15].texObj > 0)
+        if (m_texSlots[m_lastTexUnit].texObj > 0)
         {
-            var t:RDITexture = m_textures.getRef(m_texSlots[15].texObj);
+            var t:RDITexture = m_textures.getRef(m_texSlots[m_lastTexUnit].texObj);
            hx_gl_bindTexture(t.type, t.glObj);
         }
     }
@@ -594,7 +593,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
         else
         {
             // reset all texture bindings
-            for (i in 0...16)
+            for (i in 0...m_caps.maxTextureUnits)
                 this.setTexture(i, 0, 0); // TODO: optimize this!
 
             this.commitStates(ARD.PM_TEXTURES);
@@ -775,7 +774,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
             // Bind textures and set sampler state
             if((mask & ARD.PM_TEXTURES) == ARD.PM_TEXTURES) 
             {
-                for (i in 0...16) {
+                for (i in 0...m_caps.maxTextureUnits) {
                     hx_gl_activeTexture(TEXTURE0+i);
 
                     if (m_texSlots[i].texObj != 0) {

@@ -13,7 +13,7 @@ flash:
 	haxe -main Sample -cp ../Common -swf-version 11 -swf swf/Sample.swf -swf-header 800:600:60:ccccff -lib foo3d $(CFLAGS) -resource ../Common/resources/tekkblade.md2@../../Common/resources/tekkblade.md2
 
 windows:
-	haxe -main Sample -cp ../Common -cpp cpp -lib foo3d -lib format -D HXCPP_FLOAT32 $(CFLAGS)
+	haxe -main Sample -cp ../Common -cpp cpp -lib foo3d -D use_glut -lib format -D HXCPP_FLOAT32 $(CFLAGS)
 
 windowslime:
 	haxelib run lime build project.lime.xml windows $(CFLAGS)
@@ -23,10 +23,10 @@ android:
 
 clean:
 	rm -f js/Sample.js
+	rm -f js/Sample.js.map
 	rm -f swf/Sample.swf
 	rm -rf cpp
 	rm -rf android
 	rm -rf windows
-	rm -rf windowslime
 
 .PHONY: html5 flash windows android all
