@@ -78,7 +78,7 @@
             -->
             <lib name="/System/Library/Frameworks/OpenGL.framework/OpenGL"/>
             <lib name="/usr/lib/libGLEW.a"/>
-            <lib name="/usr/local/lib/libglut.a" if="use_glut"/>
+            <lib name="/usr/lib/libglut.a" if="use_glut"/>
         </section>
         <section if="linux">
             <!-- Dependencies:
