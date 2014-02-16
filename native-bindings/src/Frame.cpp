@@ -1,5 +1,5 @@
 #include "Foo3D.h"
-#include <gl/glut.h>
+#include <GL/glut.h>
 
 namespace foo3d {
 	// this is the wrapper for the foo3d render call

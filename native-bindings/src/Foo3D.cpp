@@ -1,7 +1,7 @@
 #define IMPLEMENT_API
 #include "Foo3D.h"
 
-#include <gl/glew.h>
+#include <GL/glew.h>
 #include <iostream>
 using namespace std;
 

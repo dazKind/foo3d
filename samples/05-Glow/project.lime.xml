@@ -2,7 +2,7 @@
 <project>
 
 	<meta title="05-Glow" package="com.foo3d.glow" version="1.0.0" company="OpenFL Technologies" />
-	<app main="Sample" path="./" file="05-Glow" />
+	<app main="Sample" path="./lime/" file="05-Glow" />
 	<window hardware="true" allow-shaders="true" require-shaders="true" depth-buffer="true" stencil-buffer="true" />
 
 	<source path="./" />
