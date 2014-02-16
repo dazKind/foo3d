@@ -44,13 +44,13 @@ mac64:
 	$(HXCPP) -cpp Mac64/ -D HXCPP_M64 $(CFLAGS)
 
 windowslime:
-	$(LIME) windows $(CFLAGS)
+	$(LIME) windows -32 $(CFLAGS)
 
 windowslime64:
 	$(LIME) windows -64 $(CFLAGS)
 
 linuxlime:
-	$(LIME) linux $(CFLAGS)
+	$(LIME) linux -32 $(CFLAGS)
 
 linuxlime64:
 	$(LIME) linux -64 $(CFLAGS)
