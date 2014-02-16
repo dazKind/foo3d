@@ -18,6 +18,9 @@ class Sample
     static var curFrame:Int = 0;    
     static var nextFrame:Int = 1;
 
+    static var width:Int;
+    static var height:Int;
+
     // matrices
     static var mProjOrtho:Mat44;
     static var mProjPersp:Mat44;
@@ -61,6 +64,12 @@ class Sample
     public function ontouchbegin(touch_item:Dynamic):Void {
         playAnimation = !playAnimation;
     }
+    public function onresize(_evt:Dynamic):Void {
+        trace(_evt);
+        width = _evt.x;
+        height = _evt.y;
+        mProjPersp = Mat44.createPerspLH(60, width/height, 0.1, 100.0);
+    }
 #else
     static function main() 
     {
@@ -76,16 +85,18 @@ class Sample
     static function onCtxCreated(_ctx:RenderContext):Void
     {
         // create device and basic settings
+        width = 800;
+        height = 600;
         rd = new RenderDevice(_ctx);
-        rd.setViewport(0, 0, 800, 600);
-        rd.setScissorRect(0, 0, 800, 600);
+        rd.setViewport(0, 0, width, height);
+        rd.setScissorRect(0, 0, width, height);
 
         // get us some cool default structures
         base.initDefaults(rd);
 
         // setup matrices
         mProjOrtho = Mat44.createOrthoLH(0, 1, 0, 1, -1, 1);
-        mProjPersp = Mat44.createPerspLH(60, 800/600, 0.1, 100.0);
+        mProjPersp = Mat44.createPerspLH(60, width/height, 0.1, 100.0);
         mWorldMat = Mat44.createTranslation(0, -1, -7.5);
         mWorldMat.appendScale(0.1, 0.1, 0.1);
 
@@ -234,7 +245,7 @@ class Sample
         {
             // diffuse and final glowpass
             rd.bindRenderBuffer(0);
-            rd.setViewport(0, 0, 800, 600);
+            rd.setViewport(0, 0, width, height);
             rd.clear(RDIClearFlags.ALL, 0, 0, 0.1);       
             rd.bindProgram(diffuseProg);
             rd.setUniform(diffuseLocs.get("viewProjMat"), RDIShaderConstType.FLOAT44, mProjPersp.rawData);
