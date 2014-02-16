@@ -35,9 +35,10 @@ Or:
 #### Targets:
 * js(webgl)
 * flash(stage3D)
-* cpp(windows-x86&ogl)
-* cpplime(lime&ogl)
-* android(lime&gles2)
+* cpp(windows, linux& osx)
+* cpplime(windows, linux& osx)
+* android
+* ios
 
 #### Notes:
 * Documentation is almost non-existant. I'm currently fixing this. Up until then please refer to the samples.
@@ -47,11 +48,6 @@ Or:
 * On older systems Webgl can be blacklisted in your browser. Try setting "webgl.force-enabled;true" via "about:config".
 
 #### Samples:
-
-##### 06-Openfl - "Openfl SimpleOpenglView + foo3D"
-> ![Openfl](http://developium.net/projects/foo3d/06-Openfl/s_200.jpg)
-> * See the sample live: [html5](http://developium.net/projects/foo3d/06-Openfl/Export/html5/bin)
-> * See the code: [code](https://github.com/dazKind/foo3D/blob/master/1%2C0%2C0/samples/06-Openfl/Source/Main.hx)
 
 ##### 05-Glow - "Post-process glow via FBOs"
 > ![Glow](http://developium.net/projects/foo3d/05-Glow/s_200.jpg)
