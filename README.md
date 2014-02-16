@@ -52,24 +52,24 @@ Or:
 ##### 05-Glow - "Post-process glow via FBOs"
 > ![Glow](http://developium.net/projects/foo3d/05-Glow/s_200.jpg)
 > * See the sample live: [html5](http://developium.net/projects/foo3d/05-Glow/js) | [flash](http://developium.net/projects/foo3d/05-Glow/swf)
-> * See the code: [code](https://github.com/dazKind/foo3D/blob/master/1%2C0%2C0/samples/05-Glow/Sample.hx)
+> * See the code: [code](https://github.com/dazKind/foo3D/blob/master/samples/05-Glow/Sample.hx)
 
 ##### 04-Md2 - "Md2 Loading and animation"
 > ![Md2](http://developium.net/projects/foo3d/04-Md2/s_200.jpg)
 > * See the sample live: [html5](http://developium.net/projects/foo3d/04-Md2/js) | [flash](http://developium.net/projects/foo3d/04-Md2/swf)
-> * See the code: [code](https://github.com/dazKind/foo3D/blob/master/1%2C0%2C0/samples/04-Md2/Sample.hx)
+> * See the code: [code](https://github.com/dazKind/foo3D/blob/master/samples/04-Md2/Sample.hx)
 
 ##### 03-Skybox - "Skybox-Cubemap"
 > ![Skybox](http://developium.net/projects/foo3d/03-Skybox/s_200.jpg)
 > * See the sample live: [html5](http://developium.net/projects/foo3d/03-Skybox/js) | [flash](http://developium.net/projects/foo3d/03-Skybox/swf)
-> * See the code: [code](https://github.com/dazKind/foo3D/blob/master/1%2C0%2C0/samples/03-Skybox/Sample.hx)
+> * See the code: [code](https://github.com/dazKind/foo3D/blob/master/samples/03-Skybox/Sample.hx)
 
 ##### 02-Textures - "Textures"
 > ![Textures](http://developium.net/projects/foo3d/02-Textures/s_200.jpg)
 > * See the sample live: [html5](http://developium.net/projects/foo3d/02-Textures/js) | [flash](http://developium.net/projects/foo3d/02-Textures/swf)
-> * See the code: [code](https://github.com/dazKind/foo3D/blob/master/1%2C0%2C0/samples/02-Textures/Sample.hx)
+> * See the code: [code](https://github.com/dazKind/foo3D/blob/master/samples/02-Textures/Sample.hx)
 
 ##### 01-Simple - "Green quad on a blue background"
 > ![Textures](http://developium.net/projects/foo3d/01-Simple/s_200.jpg)
 > * See the sample live: [html5](http://developium.net/projects/foo3d/01-Simple/js) | [flash](http://developium.net/projects/foo3d/01-Simple/swf)
-> * See the code: [code](https://github.com/dazKind/foo3D/blob/master/1%2C0%2C0/samples/01-Simple/Sample.hx)
+> * See the code: [code](https://github.com/dazKind/foo3D/blob/master/samples/01-Simple/Sample.hx)
