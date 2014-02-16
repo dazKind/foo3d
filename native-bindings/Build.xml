@@ -14,6 +14,11 @@
         <set name="LIB_CPU_TYPE" value="" unless="HXCPP_M64"/>
         <set name="LIB_CPU_TYPE" value="64" if="HXCPP_M64"/>
     </section>
+    <section if="macos">
+        <set name="LIB_PLATFORM" value="Mac"/>
+        <set name="LIB_CPU_TYPE" value="" unless="HXCPP_M64"/>
+        <set name="LIB_CPU_TYPE" value="64" if="HXCPP_M64"/>
+    </section>
 
     <set name="LIB_SUFFIX" value="${LIB_PLATFORM}${LIB_CPU_TYPE}"/>
 
@@ -33,8 +38,10 @@
     <files id="frame">
         <compilerflag value="-I${FOO3D_DIR}/native-bindings/src"/>
         <compilerflag value="-Iinclude"/>
+        <compilerflag value="-I/usr/include" if="linux"/>
         <compilerflag value="-DWIN32" if="windows"/>
         <compilerflag value="-DHXCPP_FLOAT32"/><!-- important for data transfers! -->
+        <compilerflag value="-DGLEW_STATIC"/>
         <compilerflag value="-std=c++0x" if="linux"/>
         <file name="src/Frame.cpp"/>
     </files>
@@ -54,8 +61,7 @@
         
         <libdir name="obj/lib"/>
         <outdir name="platforms/${LIB_SUFFIX}"/>
-        <ext value=".ndll" if="linux"/>
-        <ext value=".ndll" if="windows"/>
+        <ext value=".ndll" unless="mobile"/>
 
         <files id="foo3d"/>
         <files id="frame" if="use_glut"/>
@@ -64,18 +70,44 @@
         <!-- System libraries -->
         <!---------------------->
 
-        <lib name="-lGL" if="linux"/>
-        <lib name="-lglut" if="linux"/>
-        <lib name="-lGLEW" if="linux"/>
+        <section if="macos">
+            <!-- Dependencies:
+                - glew (brew install glew)
+                - xqartz (http://xquartz.macosforge.org/)
+                - freeglut (brew install freeglut)
+            -->
+            <lib name="/System/Library/Frameworks/OpenGL.framework/OpenGL"/>
+            <lib name="/usr/lib/libGLEW.a"/>
+            <lib name="/usr/local/lib/libglut.a" if="use_glut"/>
+        </section>
+        <section if="linux">
+            <!-- Dependencies:
+                64-bit (-DHXCPP_M64):
+                - libgl1-mesa-dev
+                - libglu1-mesa-dev
+                - libglew-dev
+                - freeglut3-dev
 
-        <lib name="kernel32.lib" if="windows"/>
-        <lib name="gdi32.lib" if="windows"/>
-        <lib name="advapi32.lib" if="windows"/>
-        <lib name="shell32.lib" if="windows"/>
-        <lib name="user32.lib" if="windows"/>
-        
-        <lib name="opengl32.lib" if="windows"/>        
-        <lib name="glew32s.lib" if="windows"/>
+                32-bit:
+                - libgl1-mesa-dev:i386
+                - libglu1-mesa-dev:i386
+                - libglew-dev:i386
+                - freeglut3-dev:i386
+            -->
+            <lib name="-lGL"/>
+            <lib name="-lGLEW"/>
+            <lib name="-lglut" if="use_glut"/>
+        </section>
+
+        <section if="windows">
+            <lib name="kernel32.lib"/>
+            <lib name="gdi32.lib"/>
+            <lib name="advapi32.lib"/>
+            <lib name="shell32.lib"/>
+            <lib name="user32.lib"/>            
+            <lib name="opengl32.lib"/>        
+            <lib name="glew32s.lib"/>
+        </section>
     </target>
 
     <target id="default">
