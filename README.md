@@ -1,6 +1,11 @@
 foo3d
 =====
 
+Website: http://foo3d.developium.net/
+
+- ATTENTION: this readme is incomplete. I'm currently working on the api-docs and the website.
+
+
 #### Crossplatform lowlevel 3D rendering API in Haxe
 
 ![foo3D](http://developium.net/pics/w00t3.jpg)
