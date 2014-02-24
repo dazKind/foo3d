@@ -156,7 +156,7 @@ class LimeRenderDevice extends AbstractRenderDevice
             lime_gl_bind_buffer(buf.type, null);
     }
 
-    override public function createTexture(_type:Int, _width:Int, _height:Int, _format:Int, _hasMips:Bool, _genMips:Bool, ?_hintIsRenderTarget=false):Int
+    override public function createTexture(_type:Int, _width:Int, _height:Int, _format:Int, _hasMips:Bool, _genMips:Bool, ?_hintIsRenderTarget:Bool=false):Int
     {
         var tex = new RDITexture();
         tex.type = _type;
@@ -590,7 +590,7 @@ class LimeRenderDevice extends AbstractRenderDevice
         lime_gl_tex_parameteri( target, TEXTURE_WRAP_T, wrapModes[(state & AbstractRenderDevice.SS_ADDRV_MASK) >> AbstractRenderDevice.SS_ADDRV_START] );
     }
 
-    override public function commitStates(?_filter=0xFFFFFFFF):Bool
+    override public function commitStates(?_filter:Int=0xFFFFFFFF):Bool
     {
         if ((m_pendingMask & _filter) != 0)
         {

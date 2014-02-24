@@ -16,7 +16,7 @@ package foo3d;
 
     typedef RenderDevice = foo3d.impl.WebGLRenderDevice;
 
-#elseif (flash)
+#elseif flash
 
     import flash.display3D.Context3DTextureFormat;
     import flash.display3D.VertexBuffer3D;
@@ -57,7 +57,6 @@ package foo3d;
     #else
         typedef RenderDevice = foo3d.impl.OpenGLRenderDevice;
     #end
-
 #end
 
 typedef ARD = AbstractRenderDevice;
@@ -689,7 +688,7 @@ class AbstractRenderDevice
     //=============================================================================
     // textures
     //=============================================================================
-    public function createTexture(_type:Int, _width:Int, _height:Int, _format:Int, _hasMips:Bool, _genMips:Bool, ?_hintIsRenderTarget=false):Int { throw "NOT IMPLEMENTED"; return 0; }
+    public function createTexture(_type:Int, _width:Int, _height:Int, _format:Int, _hasMips:Bool, _genMips:Bool, ?_hintIsRenderTarget:Bool=false):Int { throw "NOT IMPLEMENTED"; return 0; }
     public function uploadTextureData(_handle:Int, _slice:Int, _mipLevel:Int, _pixels:PixelData):Void { throw "NOT IMPLEMENTED"; }
     public function destroyTexture(_handle:Int):Void { throw "NOT IMPLEMENTED"; }
     public function calcTextureSize(_format:Int, _width:Int, _height:Int):Int
@@ -729,7 +728,7 @@ class AbstractRenderDevice
     //=============================================================================
     // state handling
     //=============================================================================
-    public function commitStates(?_filter=0xFFFFFFFF):Bool { throw "NOT IMPLEMENTED"; return false; }
+    public function commitStates(?_filter:Int=0xFFFFFFFF):Bool { throw "NOT IMPLEMENTED"; return false; }
     public function resetStates():Void { 
         m_curIndexBuf = 1;
         m_newIndexBuf = 0;
@@ -829,7 +828,7 @@ class AbstractRenderDevice
         m_newDepthMask = _enable;
         m_pendingMask |= ARD.PM_DEPTH_MASK;
     }
-    public function setDepthFunc(_mode:Int=RDITestModes.LESS):Void
+    public function setDepthFunc(?_mode:Int=RDITestModes.LESS):Void
     {
         m_newDepthTest = _mode;
         m_pendingMask |= ARD.PM_DEPTH_TEST;

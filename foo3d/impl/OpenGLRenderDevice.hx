@@ -131,7 +131,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
             hx_gl_bindBuffer(buf.type, null);
     }
 
-    override public function createTexture(_type:Int, _width:Int, _height:Int, _format:Int, _hasMips:Bool, _genMips:Bool, ?_hintIsRenderTarget=false):Int { 
+    override public function createTexture(_type:Int, _width:Int, _height:Int, _format:Int, _hasMips:Bool, _genMips:Bool, ?_hintIsRenderTarget:Bool=false):Int { 
     	
     	if (!m_caps.texNPOTSupport) {
     		if( (_width & (_width-1)) != 0 || (_height & (_height-1)) != 0 )
@@ -675,7 +675,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
         hx_gl_texParameteri( target, TEXTURE_WRAP_T, wrapModes[(state & AbstractRenderDevice.SS_ADDRV_MASK) >> AbstractRenderDevice.SS_ADDRV_START] );
     }
 
-    override public function commitStates(?_filter=0xFFFFFFFF):Bool
+    override public function commitStates(?_filter:Int=0xFFFFFFFF):Bool
     {
         if ((m_pendingMask & _filter) != 0) {
             var mask:Int = m_pendingMask & _filter;
