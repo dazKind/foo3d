@@ -504,7 +504,7 @@ class Stage3DRenderDevice extends AbstractRenderDevice
             }
         }
 
-        for (i in 0...m_caps.maxVertAttribs)
+        for (i in 0...16)
         {
             var curBit:Int = 1 << i;
             if ((newVertexAttribMask & curBit) != (m_activeVertexAttribsMask & curBit))

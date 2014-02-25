@@ -592,7 +592,7 @@ class AbstractRenderDevice
 
     var m_vertBufSlots:Array<RDIVertBufSlot>; // 16
     var m_vertexLayouts:Array<RDIVertexLayout>; // 16
-    var m_texSlots:Array<RDITexSlot>; // 16
+    var m_texSlots:Array<RDITexSlot>;
 
     var m_numVertexLayouts:Int;
     

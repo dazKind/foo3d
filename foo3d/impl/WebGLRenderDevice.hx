@@ -535,7 +535,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
             }
         }
 
-        for (i in 0...m_caps.maxVertAttribs)
+        for (i in 0...16)
         {
             var curBit:Int = 1 << i;
             if ((newVertexAttribMask & curBit) != (m_activeVertexAttribsMask & curBit))
@@ -741,7 +741,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
 
     override public function resetStates():Void
     {
-        for (i in 0...m_caps.maxVertAttribs)
+        for (i in 0...16)
             m_ctx.disableVertexAttribArray(i);
 
         super.resetStates();

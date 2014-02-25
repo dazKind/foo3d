@@ -640,7 +640,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
             }
         }
 
-        for (i in 0...m_caps.maxVertAttribs) {
+        for (i in 0...16) {
             var curBit:Int = 1 << i;
             if ((newVertexAttribMask & curBit) != (m_activeVertexAttribsMask & curBit)) {
                 if ((newVertexAttribMask & curBit) == curBit)
@@ -822,7 +822,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
 
     override public function resetStates():Void
     {
-        for (i in 0...m_caps.maxVertAttribs)
+        for (i in 0...16)
             hx_gl_disableVertexAttribArray(i);
 
         super.resetStates();
