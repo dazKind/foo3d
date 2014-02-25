@@ -296,6 +296,10 @@ class RDIShaderConstType
     inline public static var FLOAT2:Int = 0x8B50;
     inline public static var FLOAT3:Int = 0x8B51;
     inline public static var FLOAT4:Int = 0x8B52;
+    inline public static var INT:Int = 0x1404;
+    inline public static var INT2:Int = 0x8B53;
+    inline public static var INT3:Int = 0x8B54;
+    inline public static var INT4:Int = 0x8B55;
     inline public static var FLOAT33:Int = 0x8B5B;
     inline public static var FLOAT44:Int = 0x8B5C;
     inline public static var SAMPLER_2D:Int = 0x8B5E;
@@ -644,20 +648,24 @@ class AbstractRenderDevice
         m_textures = new RDIObjects<RDITexture>();
         m_shaders = new RDIObjects<RDIShaderProgram>();
         m_renBuffers = new RDIObjects<RDIRenderBuffer>();
-        
+                
+        m_numVertexLayouts = 0;
+
+        init(); // will query the capabilities
+
         m_vertBufSlots = [];
         m_vertexLayouts = [];
         m_texSlots = [];
         for (i in 0...16)
         {
             m_vertBufSlots.push(null);
-            m_texSlots.push(new RDITexSlot());
             m_vertexLayouts.push(new RDIVertexLayout());
         }
-        
-        m_numVertexLayouts = 0;
 
-        init();
+        for (i in 0...m_caps.maxTextureUnits)
+            m_texSlots.push(new RDITexSlot());
+
+        resetStates();
 
         m_lastTexUnit = m_caps.maxTextureUnits-1;
     }

@@ -88,8 +88,6 @@ class LimeRenderDevice extends AbstractRenderDevice
                 m_caps.texNPOTSupport = true;
         }
         trace(m_caps.toString());
-
-        resetStates();
     }
 
     override public function createVertexBuffer(_size:Int, _data:VertexBufferData, ?_usageHint:Int = RDIBufferUsage.STATIC, ?_strideHint = -1):Int
@@ -555,7 +553,7 @@ class LimeRenderDevice extends AbstractRenderDevice
             }
         }
 
-        for (i in 0...16)
+        for (i in 0...m_caps.maxVertAttribs)
         {
             var curBit:Int = 1 << i;
             if ((newVertexAttribMask & curBit) != (m_activeVertexAttribsMask & curBit))
