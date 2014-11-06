@@ -29,7 +29,6 @@
         <compilerflag value="-Iinclude"/>
         <compilerflag value="-I/usr/include" if="linux"/>
         <compilerflag value="-DWIN32" if="windows"/>
-        <compilerflag value="-DHXCPP_FLOAT32"/><!-- important for data transfers! -->
         <compilerflag value="-DGLEW_STATIC"/>
         <compilerflag value="-std=c++0x" if="linux"/>
         <file name="src/Foo3D.cpp"/>
@@ -40,7 +39,6 @@
         <compilerflag value="-Iinclude"/>
         <compilerflag value="-I/usr/include" if="linux"/>
         <compilerflag value="-DWIN32" if="windows"/>
-        <compilerflag value="-DHXCPP_FLOAT32"/><!-- important for data transfers! -->
         <compilerflag value="-DGLEW_STATIC"/>
         <compilerflag value="-std=c++0x" if="linux"/>
         <file name="src/Frame.cpp"/>
@@ -57,7 +55,7 @@
         <haxedef name="HXCPP_DEBUG_LINK" if="debug" />
 
         <!-- Use this switch to add/remove glut for window-management -->
-        <!--<haxedef name="use_glut" />-->
+        <haxedef name="use_glut" if="use_glut"/>
         
         <libdir name="obj/lib"/>
         <outdir name="platforms/${LIB_SUFFIX}"/>

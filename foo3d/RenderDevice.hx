@@ -145,19 +145,37 @@ class RDIDeviceCaps
 // Vertex layout
 // ---------------------------------------------------------
 
+class RDIDataType {
+    inline public static var UNSIGNED_BYTE:Int = 0x1401;
+    inline public static var UNSIGNED_SHORT:Int = 0x1403;
+    inline public static var UNSIGNED_INT:Int = 0x1405;
+    inline public static var FLOAT:Int = 0x1406;
+}
+
 class RDIVertexLayoutAttrib
 {
     public var semanticName:String;
     public var vbSlot:Int;
     public var size:Int;
+    public var type:Int;
     public var offset:Int;
     
-    public function new(?_semanticName:String = "", ?_vbSlot:Int = 0, ?_size:Int = 0, ?_offset:Int = 0)
+    public function new(?_semanticName:String = "", ?_vbSlot:Int = 0, ?_size:Int = 0, ?_offset:Int = 0, ?_type:Int = RDIDataType.FLOAT)
     {
         semanticName = _semanticName;
         vbSlot = _vbSlot;
         size = _size;
         offset = _offset;
+        type = _type;
+    }
+
+    inline public function getTypeSize():Int {
+        return {switch(type) {
+            case RDIDataType.UNSIGNED_BYTE: 1;
+            case RDIDataType.UNSIGNED_SHORT: 2;
+            //case UNSIGNED_INT, FLOAT: 
+            default: 4;
+        }};
     }
 }
 
@@ -240,7 +258,10 @@ class RDITextureFormats
     inline public static var RGBA8:Int = 0x8058;
     inline public static var RGBA16F:Int = 0x881A;
     inline public static var RGBA32F:Int = 0x8814;
+    inline public static var R16F:Int = 0x822D;
+    inline public static var R16UI:Int = 0x8234;
     inline public static var DEPTH:Int = 0x81A6;
+    inline public static var LUMINANCE:Int = 0x1909;
 }
 
 class RDITexture
@@ -300,8 +321,9 @@ class RDIShaderConstType
     inline public static var INT2:Int = 0x8B53;
     inline public static var INT3:Int = 0x8B54;
     inline public static var INT4:Int = 0x8B55;
-    inline public static var FLOAT33:Int = 0x8B5B;
-    inline public static var FLOAT44:Int = 0x8B5C;
+    inline public static var FLOAT3x3:Int = 0x8B5B;
+    inline public static var FLOAT4x4:Int = 0x8B5C;
+    inline public static var FLOAT2x4:Int = 0x8B5D;
     inline public static var SAMPLER_2D:Int = 0x8B5E;
     inline public static var SAMPLER_CUBE:Int = 0x8B60;
 }
@@ -500,6 +522,7 @@ class RDIIndexFormat
 class RDIPrimType
 {
     inline public static var LINES:Int = 0x0001;
+    inline public static var LINESSTRIP:Int = 0x0003;
     inline public static var TRIANGLES:Int = 0x0004;
     inline public static var TRISTRIP:Int = 0x0005;
     inline public static var QUADS:Int = 0x0007;
@@ -701,11 +724,12 @@ class AbstractRenderDevice
     public function destroyTexture(_handle:Int):Void { throw "NOT IMPLEMENTED"; }
     public function calcTextureSize(_format:Int, _width:Int, _height:Int):Int
     {
-        var s:Int = 0;
+        var s:Int = _width * _height;
         switch (_format)
         {
-            case RDITextureFormats.RGBA8: s = _width * _height * 4;
-            case RDITextureFormats.RGBA16F: s = _width * _height * 8;
+            case RDITextureFormats.RGBA8, RDITextureFormats.R16F, RDITextureFormats.R16UI: s *= 4;
+            case RDITextureFormats.RGBA16F: s *= 8;
+            case RDITextureFormats.RGBA32F, RDITextureFormats.DEPTH: s *= 16;
         }
         return s;
     }
@@ -778,7 +802,7 @@ class AbstractRenderDevice
     // drawcalls and clears
     //=============================================================================
     public function clear(_flags:Int, ?_r:Float = 0, ?_g:Float = 0, ?_b:Float = 0, ?_a:Float = 1, ?_depth:Float = 1):Void { throw "NOT IMPLEMENTED"; }
-    public function draw(_primType:Int, _numInds:Int, _offset:Int):Void { throw "NOT IMPLEMENTED"; }
+    public function draw(_primType:Int, _type:Int, _numInds:Int, _offset:Int):Void { throw "NOT IMPLEMENTED"; }
     public function drawArrays(_primType:Int, _offset:Int, _size:Int):Void { throw "NOT IMPLEMENTED"; }
 
     //=============================================================================

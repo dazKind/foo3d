@@ -9,7 +9,7 @@ import format.png.Data;
 
 class ImageLoader {
 
-    public static function loadImage(_src:String, _cb:Dynamic->Void):Void {
+    public static function loadImage(_src:String, _cb:Dynamic->?Int->?Int->Void):Void {
 #if js
         var img = new Image();
         img.onload = function(_){
@@ -30,7 +30,7 @@ class ImageLoader {
         loader.load(request);
 #elseif cpp
     #if lime 
-        var bytes = ByteArrayTools.toBytes(lime.utils.Assets.getBytes(_src));
+        var bytes = ByteArrayTools.toBytes(lime.Assets.getBytes(_src));
         var input = new haxe.io.BytesInput(bytes, 0, bytes.length);
         var img = new format.png.Reader(input).read();
     #else
@@ -56,7 +56,7 @@ class ImageLoader {
             }
             tmp.blit(y*stride, line, 0, stride);
         }
-        _cb(untyped tmp.getData());
+        _cb(untyped tmp.getData(), header.width, header.height);
 #end
     }
 }

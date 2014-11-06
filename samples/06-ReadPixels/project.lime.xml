@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+
+	<meta title="06-ReadPixels" package="com.foo3d.readpixels" version="1.0.0" company="developium.net" />
+	<app main="Sample" path="./" file="06-ReadPixels" />
+
+	<source path="./" />
+	<source path="../Common" />
+
+	<haxedef name="foo3d_use_lime" />
+    <android target-sdk-version="19" />
+
+	<haxelib name="lime" />
+	<haxelib name="foo3d" />
+	<haxelib name="format" />
+
+	<assets path="../Common/resources" rename="resources" exclude="*.dll|*.js|*.mp3|*.svg" />
+
+</project>

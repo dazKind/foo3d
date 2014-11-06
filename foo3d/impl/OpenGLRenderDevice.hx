@@ -5,7 +5,9 @@ import foo3d.RenderDevice;
 class OpenGLRenderDevice extends AbstractRenderDevice {
 
 	inline public static var UNSIGNED_BYTE:Int = 0x1401;
+    inline public static var UNSIGNED_SHORT:Int = 0x1403;
 	inline public static var FLOAT:Int = 0x1406;
+    inline public static var RED:Int = 0x1903 ;
 	inline public static var RGBA:Int = 0x1908;
 	inline public static var CULL_FACE:Int = 0x0B44;
 	inline public static var DEPTH_TEST:Int = 0x0B71;
@@ -37,6 +39,13 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
 	inline public static var MAX_SAMPLES:Int = 0x8D57;
     inline public static var COLOR_ATTACHMENT0:Int = 0x8CE0;
     inline public static var DEPTH_ATTACHMENT:Int = 0x8D00;
+    inline public static var DEPTH_STENCIL_ATTACHMENT:Int = 0x821A;
+
+    inline public static var DEPTH24_STENCIL8:Int = 0x88F0;
+    inline public static var DEPTH_STENCIL:Int = 0x84F9;
+    inline public static var UNSIGNED_INT_24_8:Int = 0x84FA;   
+
+    
     inline public static var NONE:Int = 0;
 	inline public static var TEXTURE_COMPARE_MODE:Int = 0x884C;
     inline public static var FRAMEBUFFER:Int = 0x8D40;
@@ -57,11 +66,9 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
 
     override function init():Void
     {
-        #if !HXCPP_FLOAT32
-            throw "[Foo3D - ERROR] - Using Doubles! Foo3d only supports 32bit Floats! Compile your project with -DHXCPP_FLOAT32!";
-        #end
-
         hx_rd_init(m_caps);
+
+        m_caps.maxTextureUnits = 32;
 
         trace(m_caps.toString());
     }
@@ -160,7 +167,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
         }
         
         tex.memSize = calcTextureSize(tex.format, _width, _height);
-        if (_hasMips || _genMips) 
+        if (_hasMips || _genMips)
             tex.memSize += Std.int(tex.memSize * 1.0 / 3.0);
         if (_type == RDITextureTypes.TEXCUBE)
             tex.memSize *= 6;
@@ -185,9 +192,15 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
             case RDITextureFormats.RGBA16F, RDITextureFormats.RGBA32F:
                 inputFormat = RGBA;
                 inputType = FLOAT;
+            case RDITextureFormats.R16F, RDITextureFormats.R16UI:
+                inputFormat = RED;
+                inputType = UNSIGNED_SHORT;
             case RDITextureFormats.DEPTH:
                 inputFormat = DEPTH_COMPONENT;
                 inputType = FLOAT;
+            case DEPTH24_STENCIL8:
+                inputFormat = DEPTH_STENCIL;
+                inputType = UNSIGNED_INT_24_8;
         }
 
         // Calculate size of next mipmap using "floor" convention
@@ -361,15 +374,16 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
     }
 
     override public function setUniform(_loc:UniformLocationType, _type:Int, _values:Array<Float>):Void 
-    { 
+    {   
         switch (_type)
         {
             case RDIShaderConstType.FLOAT: hx_gl_uniform1fv(_loc, _values);
             case RDIShaderConstType.FLOAT2: hx_gl_uniform2fv(_loc, _values);
             case RDIShaderConstType.FLOAT3: hx_gl_uniform3fv(_loc, _values);
             case RDIShaderConstType.FLOAT4: hx_gl_uniform4fv(_loc, _values);
-            case RDIShaderConstType.FLOAT33: hx_gl_uniformMatrix3fv(_loc, false, _values);
-            case RDIShaderConstType.FLOAT44: hx_gl_uniformMatrix4fv(_loc, false, _values);
+            case RDIShaderConstType.FLOAT3x3: hx_gl_uniformMatrix3fv(_loc, false, _values);
+            case RDIShaderConstType.FLOAT4x4: hx_gl_uniformMatrix4fv(_loc, false, _values);
+            case RDIShaderConstType.FLOAT2x4: hx_gl_uniformMatrix2x4fv(_loc, false, _values);
         }
     }
 
@@ -448,19 +462,19 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
         if (_depth)
         {
             hx_gl_bindFramebuffer(FRAMEBUFFER, rb.fbo);
-            var texObj:Int = this.createTexture(RDITextureTypes.TEX2D, rb.width, rb.height, RDITextureFormats.DEPTH, false, false, true);
+            var texObj:Int = this.createTexture(RDITextureTypes.TEX2D, rb.width, rb.height, DEPTH24_STENCIL8, false, false, true);
             hx_gl_texParameteri(RDITextureTypes.TEX2D, TEXTURE_COMPARE_MODE, NONE);
             this.uploadTextureData(texObj, 0, 0, null);
             rb.depthTex = texObj;
             var tex:RDITexture = m_textures.getRef(texObj);
-            hx_gl_framebufferTexture2D(DEPTH_ATTACHMENT, tex.glObj);
+            hx_gl_framebufferTexture2D(DEPTH_STENCIL_ATTACHMENT, tex.glObj);
 
             if (_samples > 0) {
                 hx_gl_bindFramebuffer(FRAMEBUFFER, rb.fboMS);
                 rb.depthBufObj = hx_gl_genRenderbuffer();
                 hx_gl_bindRenderbuffer(RENDERBUFFER, rb.depthBufObj);
-                hx_gl_renderbufferStorageMultisample(rb.samples, RDITextureFormats.DEPTH, rb.width, rb.height);
-                hx_gl_framebufferRenderbuffer(DEPTH_ATTACHMENT, rb.depthBufObj);
+                hx_gl_renderbufferStorageMultisample(rb.samples, DEPTH24_STENCIL8, rb.width, rb.height);
+                hx_gl_framebufferRenderbuffer(DEPTH_STENCIL_ATTACHMENT, rb.depthBufObj);
             }
         }
 
@@ -630,10 +644,10 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
                 hx_gl_vertexAttribPointer(
                     attribIndex, 
                     attrib.size, 
-                    FLOAT, 
+                    attrib.type, 
                     false, 
-                    vbSlot.stride*4, 
-                    (vbSlot.offset + attrib.offset)*4
+                    vbSlot.stride, 
+                    vbSlot.offset + attrib.offset
                 );
                 
                 newVertexAttribMask |= 1 << attribIndex;
@@ -857,10 +871,10 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
         }
     }
 
-    override public function draw(_primType:Int, _numInds:Int, _offset:Int):Void
+    override public function draw(_primType:Int, _type:Int, _numInds:Int, _offset:Int):Void
     {
         if (commitStates())
-            hx_gl_drawElements(_primType, _numInds, _offset);
+            hx_gl_drawElements(_primType, _type, _numInds, _offset);
     }
 
     override public function drawArrays(_primType:Int, _offset:Int, _size:Int):Void
@@ -908,7 +922,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
     public static var hx_gl_drawArrays = cpp.Lib.load("foo3d", "hx_gl_drawArrays", 3);
     public static var hx_gl_drawBuffer = cpp.Lib.load("foo3d", "hx_gl_drawBuffer", 1);
     public static var hx_gl_drawBuffers = cpp.Lib.load("foo3d", "hx_gl_drawBuffers", 1);
-    public static var hx_gl_drawElements = cpp.Lib.load("foo3d", "hx_gl_drawElements", 3);
+    public static var hx_gl_drawElements = cpp.Lib.load("foo3d", "hx_gl_drawElements", 4);
     
     public static var hx_gl_enable = cpp.Lib.load("foo3d", "hx_gl_enable", 1);
     public static var hx_gl_enableVertexAttribArray = cpp.Lib.load("foo3d", "hx_gl_enableVertexAttribArray", 1);
@@ -947,6 +961,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
     public static var hx_gl_uniform4fv = cpp.Lib.load("foo3d", "hx_gl_uniform4fv", 2);
     public static var hx_gl_uniformMatrix3fv = cpp.Lib.load("foo3d", "hx_gl_uniformMatrix3fv", 3);
     public static var hx_gl_uniformMatrix4fv = cpp.Lib.load("foo3d", "hx_gl_uniformMatrix4fv", 3);
+    public static var hx_gl_uniformMatrix2x4fv = cpp.Lib.load("foo3d", "hx_gl_uniformMatrix2x4fv", 3);
     public static var hx_gl_uniform1i = cpp.Lib.load("foo3d", "hx_gl_uniform1i", 2);	
 	public static var hx_gl_useProgram = cpp.Lib.load("foo3d", "hx_gl_useProgram", 1);	
 

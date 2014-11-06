@@ -650,7 +650,7 @@ __Returns:__
 
 ### draw(...)
 ```haxe
-draw(_primType:Int, _numInds:Int, _offset:Int):Void
+draw(_primType:Int, _type:Int, _numInds:Int, _offset:Int):Void
 ```
 
 Draw the currently bound primitives. <b>Make sure your target supports the primitiveType!</b>
@@ -662,6 +662,11 @@ __Parameters:__
    * RDIPrimType.TRIANGLES
    * RDIPrimType.TRISTRIP
    * RDIPrimType.QUADS
+ * _type:Int -- Needs to match the indexbuffer data that is bound. Can be one of the following:
+   * RDIDataType.UNSIGNED_BYTE
+   * RDIDataType.UNSIGNED_SHORT
+   * RDIDataType.UNSIGNED_INT
+   * RDIDataType.FLOAT
  * _numInds:Int -- Number of elements in the indexbuffer to use for the drawcall.
  * _offset:Int -- Offset from the start of the indexbuffer in elements.
 
@@ -699,6 +704,8 @@ foo3d.impl.Stage3DRenderDevice
 __Inheritance:__ foo3d.impl.Stage3DRenderDevice --> foo3d.AbstractRenderDevice
 
 This renderdevice implements the flash11 Stage3D-API and consumes AGAL-shaders.
+
+#THIS IMPLEMENTATION IS DEPRECATED. DONT USE.
 
 foo3d.impl.WebGLRenderDevice
 ---

@@ -345,8 +345,8 @@ class WebGLRenderDevice extends AbstractRenderDevice
             case RDIShaderConstType.FLOAT2: m_ctx.uniform2fv(_loc, new Float32Array(untyped _values));
             case RDIShaderConstType.FLOAT3: m_ctx.uniform3fv(_loc, new Float32Array(untyped _values));
             case RDIShaderConstType.FLOAT4: m_ctx.uniform4fv(_loc, new Float32Array(untyped _values));
-            case RDIShaderConstType.FLOAT33: m_ctx.uniformMatrix3fv(_loc, false, new Float32Array(untyped _values));
-            case RDIShaderConstType.FLOAT44: m_ctx.uniformMatrix4fv(_loc, false, new Float32Array(untyped _values));
+            case RDIShaderConstType.FLOAT3x3: m_ctx.uniformMatrix3fv(_loc, false, new Float32Array(untyped _values));
+            case RDIShaderConstType.FLOAT4x4: m_ctx.uniformMatrix4fv(_loc, false, new Float32Array(untyped _values));
         }
     }
 
@@ -525,10 +525,10 @@ class WebGLRenderDevice extends AbstractRenderDevice
                 m_ctx.vertexAttribPointer(
                     attribIndex, 
                     attrib.size, 
-                    RenderingContext.FLOAT, 
+                    attrib.type, 
                     false, 
-                    vbSlot.stride*4, 
-                    (vbSlot.offset + attrib.offset)*4
+                    vbSlot.stride, 
+                    vbSlot.offset + attrib.offset
                 );
                 
                 newVertexAttribMask |= 1 << attribIndex;
@@ -776,10 +776,10 @@ class WebGLRenderDevice extends AbstractRenderDevice
         }
     }
 
-    override public function draw(_primType:Int, _numInds:Int, _offset:Int):Void
-    {
+    override public function draw(_primType:Int, _type:Int, _numInds:Int, _offset:Int):Void
+    {   
         if (commitStates())
-            m_ctx.drawElements(_primType, _numInds, RenderContext.UNSIGNED_SHORT, _offset*2);
+            m_ctx.drawElements(_primType, _type, _numInds, _offset);
     }
 
     override public function drawArrays(_primType:Int, _offset:Int, _size:Int):Void

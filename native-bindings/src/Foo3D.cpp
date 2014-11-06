@@ -5,7 +5,62 @@
 #include <iostream>
 using namespace std;
 
-namespace foo3d {	
+namespace foo3d {
+
+	struct Float32Array
+	{
+	   int   floatCount;
+	   bool  deleteData;
+	   float *data;
+
+	   Float32Array(value inArray)
+	   {
+	      floatCount = 0;
+	      data = 0;
+	      deleteData = false;
+
+	      if (val_is_array(inArray))
+	      {
+	         floatCount = val_array_size(inArray);
+	         float *f = val_array_float(inArray);
+	         if (f)
+	            data = f;
+	         else
+	         {
+	            data = new float[floatCount];
+	            deleteData = true;
+
+	            double *d = val_array_double(inArray);
+	            if (d)
+	            {
+	               for(int f=0;f<floatCount;f++)
+	                  data[f] = d[f];
+	            }
+	            else
+	            {
+	               int *i = val_array_int(inArray);
+	               if (i)
+	               {
+	                  for(int f=0;f<floatCount;f++)
+	                     data[f] = i[f];
+	               }
+	               else
+	               {
+	                  for(int f=0;f<floatCount;f++)
+	                     data[f] = val_number( val_array_i(inArray,f) );
+	               }
+	            }
+	         }
+	      }
+	      else
+	      	throw "WTF!";
+	   }
+	   ~Float32Array()
+	   {
+	      if (deleteData)
+	         delete [] data;
+	   }
+	};
 
 	const unsigned int color_buffers[] = {
 		GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3,  
@@ -16,6 +71,8 @@ namespace foo3d {
 
 	// renderdevice calls
 	void hx_rd_init(value _caps) {
+		glewExperimental=TRUE;
+		
 		GLenum err = glewInit();
 		if (err != GLEW_OK) {
 			cout<<"[Foo3D] - [ERROR] - glewInit failed, aborting."<<endl;
@@ -158,16 +215,16 @@ namespace foo3d {
 	DEFINE_PRIM(hx_gl_texParameteri, 3);
 
 	void hx_gl_clearDepth(value _depth) {
-		glClearDepth((GLfloat)val_float(_depth));
+		glClearDepth((GLfloat)val_number(_depth));
 	}
 	DEFINE_PRIM(hx_gl_clearDepth, 1);
 
 	void hx_gl_clearColor(value _r, value _g, value _b, value _a) {
 		glClearColor(
-			(GLfloat)val_float(_r),
-			(GLfloat)val_float(_g),
-			(GLfloat)val_float(_b),
-			(GLfloat)val_float(_a)
+			(GLfloat)val_number(_r),
+			(GLfloat)val_number(_g),
+			(GLfloat)val_number(_b),
+			(GLfloat)val_number(_a)
 		);
 	}
 	DEFINE_PRIM(hx_gl_clearColor, 4);
@@ -359,51 +416,72 @@ namespace foo3d {
 	DEFINE_PRIM(hx_gl_getUniformLocation, 2);
 
 	void hx_gl_uniform1fv(value _loc, value _data) {
-		glUniform1fv(val_int(_loc), val_array_size(_data), (float*)val_array_float(_data));
+		Float32Array floats(_data);
+		if (floats.floatCount > 0)
+			glUniform1fv(val_int(_loc), floats.floatCount, floats.data);
 	}
 	DEFINE_PRIM(hx_gl_uniform1fv, 2);
 
 	void hx_gl_uniform2fv(value _loc, value _data) {
-		glUniform2fv(val_int(_loc), val_array_size(_data)/2, (float*)val_array_float(_data));
+		Float32Array floats(_data);
+		if (floats.floatCount > 1)
+			glUniform2fv(val_int(_loc), floats.floatCount/2, floats.data);
 	}
 	DEFINE_PRIM(hx_gl_uniform2fv, 2);
 
 	void hx_gl_uniform3fv(value _loc, value _data) {
-		glUniform3fv(val_int(_loc), val_array_size(_data)/3, (float*)val_array_float(_data));
+		Float32Array floats(_data);
+		if (floats.floatCount > 2)
+			glUniform3fv(val_int(_loc), floats.floatCount/3, floats.data);
 	}
 	DEFINE_PRIM(hx_gl_uniform3fv, 2);
 
 	void hx_gl_uniform4fv(value _loc, value _data) {
-		glUniform4fv(val_int(_loc), val_array_size(_data)/4, (float*)val_array_float(_data));
+		Float32Array floats(_data);
+		if (floats.floatCount > 3)
+			glUniform4fv(val_int(_loc), floats.floatCount/4, floats.data);
 	}
 	DEFINE_PRIM(hx_gl_uniform4fv, 2);
 
 	void hx_gl_uniformMatrix3fv(value _loc, value _transpose, value _data) {
-		glUniformMatrix3fv(val_int(_loc), val_array_size(_data)/9, val_bool(_transpose), (float*)val_array_float(_data));
+		Float32Array floats(_data);
+		if (floats.floatCount > 8)
+			glUniformMatrix3fv(val_int(_loc), floats.floatCount/9, val_bool(_transpose), floats.data);
 	}
 	DEFINE_PRIM(hx_gl_uniformMatrix3fv, 3);
 
 	void hx_gl_uniformMatrix4fv(value _loc, value _transpose, value _data) {
-		glUniformMatrix4fv(val_int(_loc), val_array_size(_data)/16, val_bool(_transpose), (float*)val_array_float(_data));
+		Float32Array floats(_data);
+		if (floats.floatCount > 15)
+			glUniformMatrix4fv(val_int(_loc), floats.floatCount/16, val_bool(_transpose), floats.data);
 	}
 	DEFINE_PRIM(hx_gl_uniformMatrix4fv, 3);
+
+	void hx_gl_uniformMatrix2x4fv(value _loc, value _transpose, value _data) {
+		Float32Array floats(_data);
+		if (floats.floatCount > 8)
+			glUniformMatrix2x4fv(val_int(_loc), floats.floatCount/8, val_bool(_transpose), floats.data);
+	}
+	DEFINE_PRIM(hx_gl_uniformMatrix2x4fv, 3);
 
 	void hx_gl_uniform1i(value _loc, value _data) {
 		glUniform1i(val_int(_loc), val_int(_data));
 	}
 	DEFINE_PRIM(hx_gl_uniform1i, 2);
 
-	void hx_gl_drawElements(value _primType, value _numInds, value _offset) {
+	void hx_gl_drawElements(value _primType, value _type, value _numInds, value _offset) {
+		int prim = val_int(_primType);
+		int type = val_int(_type); // GL_UNSIGNED_SHORT
 		int count = val_int(_numInds);
 		int start = val_int(_offset);
 		glDrawElements(
 			val_int(_primType), 
 			count, 
-			GL_UNSIGNED_SHORT, // TODO: optimize this!
+			type,
 			(char *)0 + (start)
 		);
 	}
-	DEFINE_PRIM(hx_gl_drawElements, 3);
+	DEFINE_PRIM(hx_gl_drawElements, 4);
 
 	void hx_gl_drawArrays(value _primType, value _offset, value _size) {
 		glDrawArrays(val_int(_primType), val_int(_offset), val_int(_size));

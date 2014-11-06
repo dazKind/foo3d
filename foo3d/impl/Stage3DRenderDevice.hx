@@ -493,6 +493,8 @@ class Stage3DRenderDevice extends AbstractRenderDevice
                 var attrib:RDIVertexLayoutAttrib = vl.attribs[i];
                 var vbSlot:RDIVertBufSlot = m_vertBufSlots[attrib.vbSlot];
 
+                throw "THIS IS BROKEN! REVIEW BUFFER OFFSET!"
+
                 m_ctx.setVertexBufferAt(
                     attribIndex, 
                     m_buffers.getRef(vbSlot.vbObj).glObj.vbuf, 
