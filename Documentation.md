@@ -705,7 +705,7 @@ __Inheritance:__ foo3d.impl.Stage3DRenderDevice --> foo3d.AbstractRenderDevice
 
 This renderdevice implements the flash11 Stage3D-API and consumes AGAL-shaders.
 
-#THIS IMPLEMENTATION IS DEPRECATED. DONT USE.
+__THIS IMPLEMENTATION IS DEPRECATED. DONT USE.__
 
 foo3d.impl.WebGLRenderDevice
 ---
