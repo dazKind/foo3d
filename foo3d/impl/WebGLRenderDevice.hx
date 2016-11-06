@@ -21,7 +21,11 @@ class WebGLRenderDevice extends AbstractRenderDevice
     }
     
     override function init():Void
-    {
+    {   
+        trace("[Foo3D] - " + m_ctx.getParameter(RenderingContext.VERSION) + " // " + 
+              m_ctx.getParameter(RenderingContext.SHADING_LANGUAGE_VERSION) + " // " + 
+              m_ctx.getParameter(RenderingContext.VENDOR));
+
         m_caps.texFloatSupport = m_ctx.getExtension("OES_texture_float") == null ? false : true;
         m_caps.texNPOTSupport = true;
         m_caps.rtMultisampling = false;
@@ -30,13 +34,14 @@ class WebGLRenderDevice extends AbstractRenderDevice
         m_caps.maxVertUniforms = m_ctx.getParameter(RenderingContext.MAX_VERTEX_UNIFORM_VECTORS);
         m_caps.maxTextureUnits = m_ctx.getParameter(RenderingContext.MAX_COMBINED_TEXTURE_IMAGE_UNITS);
         m_caps.maxColorAttachments = 1;
-
         trace(m_caps.toString());
 
         var supportedExtensions:Array<String> = m_ctx.getSupportedExtensions();
         var e:String = "[Foo3D] - Supported extensions by browser:\n";
-        for (s in supportedExtensions)
+        for (s in supportedExtensions) {
             e += s + "\n";
+            m_ctx.getExtension(s);
+        }
         trace(e);
     }
 
@@ -49,7 +54,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
             _usageHint);
 
         m_ctx.bindBuffer(buf.type, buf.glObj);
-        m_ctx.bufferData(buf.type, new Float32Array(new Uint8Array(_data.getData()).buffer), _usageHint);
+        m_ctx.bufferData(buf.type, _data, _usageHint);
         m_ctx.bindBuffer(buf.type, null);
         
         m_bufferMem += buf.size;
@@ -66,7 +71,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
             _usageHint);
 
         m_ctx.bindBuffer(buf.type, buf.glObj);
-        m_ctx.bufferData(buf.type, new Uint16Array(new Uint8Array(_data.getData()).buffer), _usageHint);
+        m_ctx.bufferData(buf.type, _data, _usageHint);
         m_ctx.bindBuffer(buf.type, null);
         
         m_bufferMem += buf.size;
@@ -88,7 +93,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
     {
         var buf:RDIBuffer = m_buffers.getRef(_handle);
         m_ctx.bindBuffer(buf.type, buf.glObj);
-        m_ctx.bufferSubData(buf.type, _offset, new Float32Array(new Uint8Array(_data.getData()).buffer));
+        m_ctx.bufferSubData(buf.type, _offset, _data);
         m_ctx.bindBuffer(buf.type, null);
     }
     
@@ -96,7 +101,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
     {
         var buf:RDIBuffer = m_buffers.getRef(_handle);
         m_ctx.bindBuffer(buf.type, buf.glObj);
-        m_ctx.bufferSubData(buf.type, _offset, new Uint16Array(new Uint8Array(_data.getData()).buffer));
+        m_ctx.bufferSubData(buf.type, _offset, _data);
         
         if(m_curIndexBuf != 0) // rebind the old one
             m_ctx.bindBuffer(buf.type, m_buffers.getRef(m_curIndexBuf).glObj);
@@ -177,11 +182,10 @@ class WebGLRenderDevice extends AbstractRenderDevice
             m_ctx.texImage2D(target, _mipLevel, tex.glFmt, width, height, 0, inputFormat, inputType, null);
         }
         else
-            m_ctx.texImage2D(target, _mipLevel, tex.glFmt, inputFormat, inputType, _pixels);
+            m_ctx.texImage2D(target, _mipLevel, tex.glFmt, inputFormat, inputType, new js.html.ImageData(new js.html.Uint8ClampedArray(_pixels), tex.width, tex.height));
 
         // Note: for cube maps mips are only generated when the side with the highest index is uploaded
-        if (tex.genMips && (tex.type != RDITextureTypes.TEXCUBE || _slice == 5))
-        {
+        if (tex.genMips && (tex.type != RDITextureTypes.TEXCUBE || _slice == 5)) {
             m_ctx.generateMipmap(tex.type);
         }
 
@@ -347,6 +351,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
             case RDIShaderConstType.FLOAT4: m_ctx.uniform4fv(_loc, new Float32Array(untyped _values));
             case RDIShaderConstType.FLOAT3x3: m_ctx.uniformMatrix3fv(_loc, false, new Float32Array(untyped _values));
             case RDIShaderConstType.FLOAT4x4: m_ctx.uniformMatrix4fv(_loc, false, new Float32Array(untyped _values));
+            case RDIShaderConstType.FLOAT2x4: untyped m_ctx.uniformMatrix2x4fv(_loc, false, new Float32Array(untyped _values));
         }
     }
 
@@ -465,7 +470,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
 
     override public function getRenderBufferData(_handle:Int, ?_bufIndex:Int=0):RDIRenderBufferData
     {
-        var res:RDIRenderBufferData = {width:0, height:0, data:[]};
+        var res:RDIRenderBufferData = {width:0, height:0, data:null};
         var x:Int = 0;
         var y:Int = 0;
         var w:Int = 0;
@@ -496,7 +501,8 @@ class WebGLRenderDevice extends AbstractRenderDevice
         }
 
         m_ctx.finish();
-        m_ctx.readPixels(x, y, w, h, format, type, res.data);
+        res.data = cast new js.html.Uint8ClampedArray(w * h);
+        m_ctx.readPixels(x, y, w, h, format, type, cast res.data);
         return res;
     }
 
@@ -779,7 +785,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
     override public function draw(_primType:Int, _type:Int, _numInds:Int, _offset:Int):Void
     {   
         if (commitStates())
-            m_ctx.drawElements(_primType, _type, _numInds, _offset);
+            m_ctx.drawElements(_primType, _numInds, _type, _offset);
     }
 
     override public function drawArrays(_primType:Int, _offset:Int, _size:Int):Void

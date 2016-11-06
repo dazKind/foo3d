@@ -10,33 +10,11 @@ package foo3d;
     typedef FrameBufferObjectType = js.html.webgl.Framebuffer;
     typedef RenderBufferObjectType = js.html.webgl.Renderbuffer;
 
-    typedef VertexBufferData = haxe.io.Bytes;
-    typedef IndexBufferData = haxe.io.Bytes;
-    typedef PixelData = Dynamic;
+    typedef VertexBufferData = haxe.io.BytesData;
+    typedef IndexBufferData = haxe.io.BytesData;
+    typedef PixelData = haxe.io.BytesData;
 
     typedef RenderDevice = foo3d.impl.WebGLRenderDevice;
-
-#elseif flash
-
-    import flash.display3D.Context3DTextureFormat;
-    import flash.display3D.VertexBuffer3D;
-    import flash.display3D.IndexBuffer3D;
-    import flash.display3D.textures.TextureBase;
-    import flash.display3D.Program3D;
-
-    typedef BufferObjectType = { vbuf:VertexBuffer3D, ibuf:IndexBuffer3D };
-    typedef TextureObjectType = TextureBase;
-    typedef TextureFormatType = Context3DTextureFormat;
-    typedef ShaderProgramType = { prog:Program3D, vsInfo:Dynamic, fsInfo:Dynamic };
-    typedef UniformLocationType = { vsLoc:Null<Int>, fsLoc:Null<Int> };
-    typedef FrameBufferObjectType = Dynamic;
-    typedef RenderBufferObjectType = Null<Bool>;
-
-    typedef VertexBufferData = haxe.io.Bytes;
-    typedef IndexBufferData = haxe.io.Bytes;
-    typedef PixelData = flash.display.BitmapData; //flash.utils.ByteArray;
-
-    typedef RenderDevice = foo3d.impl.Stage3DRenderDevice;
 
 #elseif cpp
 
@@ -48,15 +26,12 @@ package foo3d;
     typedef FrameBufferObjectType = Null<Int>;
     typedef RenderBufferObjectType = Null<Int>;
 
-    typedef VertexBufferData = haxe.io.Bytes;
-    typedef IndexBufferData = haxe.io.Bytes;
+    typedef VertexBufferData = haxe.io.BytesData;
+    typedef IndexBufferData = haxe.io.BytesData;
     typedef PixelData = haxe.io.BytesData;
 
-    #if foo3d_use_lime
-        typedef RenderDevice = foo3d.impl.LimeRenderDevice;
-    #else
-        typedef RenderDevice = foo3d.impl.OpenGLRenderDevice;
-    #end
+    typedef RenderDevice = foo3d.impl.OpenGLRenderDevice;
+
 #end
 
 typedef ARD = AbstractRenderDevice;

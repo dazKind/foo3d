@@ -1,20 +1,16 @@
 #ifndef __FOO3D_H__
 #define __FOO3D_H__
 
-#include <hx/CFFI.h>
+#include <GL/glew.h>
 
-#if defined _WIN32 || defined __CYGWIN__
-    #ifdef __GNUC__
-        #define DLL_PUBLIC __attribute__ ((dllexport))
-    #else
-        #define DLL_PUBLIC __declspec(dllexport)
-    #endif
-#else
-    #if __GNUC__ >= 4
-        #define DLL_PUBLIC __attribute__ ((visibility ("default")))
-    #else
-        #define DLL_PUBLIC
-    #endif
-#endif
+namespace foo3d {
+
+    const unsigned int color_buffers[] = {
+        GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3,  
+        GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5, GL_COLOR_ATTACHMENT6, GL_COLOR_ATTACHMENT7,  
+        GL_COLOR_ATTACHMENT8, GL_COLOR_ATTACHMENT9, GL_COLOR_ATTACHMENT10, GL_COLOR_ATTACHMENT11,  
+        GL_COLOR_ATTACHMENT12, GL_COLOR_ATTACHMENT13, GL_COLOR_ATTACHMENT14, GL_COLOR_ATTACHMENT15  
+    };
+}
 
 #endif /* __FOO3D_H__ */

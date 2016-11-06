@@ -1,0 +1,20 @@
+<xml>
+    <set name="NATIVE_TOOLKIT_PATH" value="${haxelib:foo3d}/deps" />
+
+    <include name="${NATIVE_TOOLKIT_PATH}/glew/files.xml" />
+
+    <files id='haxe'>,
+        <compilerflag value='-I${haxelib:foo3d}/native-bindings/src'/>
+        <compilerflag value="-I${NATIVE_TOOLKIT_PATH}/glew/include"/>
+        
+        <include name="${NATIVE_TOOLKIT_PATH}/glew/defines.xml" />
+
+        <!--<file name='${haxelib:hx-nanovg}/native-bindings/src/hx-nanovg.cpp'/>
+        <file name='${haxelib:hx-nanovg}/deps/nanovg/src/nanovg.c'/>-->
+    </files>
+    <target id='haxe'>    
+        <!--<files id="native-toolkit-glew"/>-->
+        <lib name='opengl32.lib' if="windows"/>
+        <vflag name="-framework" value="OpenGL" if="mac"/>
+    </target>
+</xml>
