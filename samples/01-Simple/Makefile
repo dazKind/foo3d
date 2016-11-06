@@ -1,13 +1,13 @@
 CONF = release
 CFLAGS=
 ifeq ($(CONF), debug)
-	CFLAGS+= -debug
+	CFLAGS+=--debug
 endif
 
 all:
 
 desktop:
-	haxelib run flow build windows $(CFLAGS)
+	haxelib run flow build $(CFLAGS)
 
 web:
 	haxelib run flow build web $(CFLAGS)

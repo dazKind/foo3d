@@ -1,0 +1,32 @@
+{
+    "project": {
+        "name": "02-Texture",
+        "version": "1.0.0",
+        "author": "f003d.developium.net",
+
+        "app" : {
+            "main": "Main",
+            "output": "bin",
+            "name": "02-Texture",
+            "package": "net.developium.foo3d",
+            "codepaths": ["src", "../Common"]
+        },
+
+        "build": {
+            "dependencies": {
+                "linc_glew" : "*",
+                "snow": "*",
+                "format": "*",
+                "foo3d": "*",
+                "hscript": "*"
+            },
+            "defines" : [
+            ], 
+            "flags": [
+            ]
+        },
+        "files" : {
+            "assets" : "../Common/resources => resources"
+        }
+    }
+}
