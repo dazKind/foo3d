@@ -10,18 +10,17 @@ typedef UserConfig = {}
 
 @:log_as('app')
 class Main extends snow.App.App {
-   
+
     static var vsSrc:String = "
         attribute vec3 vPos;
-        attribute vec2 vUv;
 
         uniform mat4 viewProjMat;
         uniform mat4 worldMat;
 
-        varying vec2 uv;
+        varying vec3 uv;
 
         void main() {
-            uv = vUv;
+            uv = vPos;
             gl_Position = (viewProjMat * (worldMat * vec4(vPos, 1.0) ));
         }";
 
@@ -30,27 +29,32 @@ class Main extends snow.App.App {
         precision highp float;
         #endif        
         
-        varying vec2 uv;
+        varying vec3 uv;
 
-        uniform sampler2D uSampler;
+        uniform samplerCube uSampler;
         
         void main() {
-            gl_FragColor = texture2D(uSampler, uv);
+            gl_FragColor = textureCube(uSampler, uv);
         }";
-
+    
     static var rd:RenderDevice;
-
-    // handles
+ 
+     // handles
     static var vBuf:Int;
     static var iBuf:Int;
     static var vertLayout:Int;
     static var prog:Int;
     static var tex:Int;
 
+    static var mProj:Mat44;
+    static var mWorld:Mat44;
+
+    static var mWorldLoc:Dynamic;
+
     public function new() {}
 
     override function config( config:AppConfig ) : AppConfig {
-        config.window.title = "02-Texture";
+        config.window.title = "03-Skybox";
         config.window.width = 960;
         config.window.height = 480;
         return config;
@@ -66,54 +70,53 @@ class Main extends snow.App.App {
         rd.setScissorRect(0, 0, width, height);
 
         // create the matrices for the scene
-        var mProj:Mat44 = Mat44.createPerspLH(60, width/height, 0.1, 1000.0);
-        var mWorld:Mat44 = new Mat44();
-        mWorld.setTranslation(0, 0, -5);
+        mProj = Mat44.createPerspLH(60, width/height, 0.1, 1000.0);
+        mWorld = new Mat44();
 
         // create the buffers and the shaderprogram
         // bind the necessary buffers for rendering
         vertLayout = rd.registerVertexLayout([
             new RDIVertexLayoutAttrib("vPos", 0, 3, 0),
-            new RDIVertexLayoutAttrib("vUv", 0, 2, 12),
         ]);
-        
-        var qVerts = haxe.io.Float32Array.fromArray([ // position + uv
-            -1.0, -1.0, 1.0,    0, 0,
-            1.0, -1.0, 1.0,     1, 0,
-            1.0, 1.0, 1.0,      1, 1,
-            -1.0, 1.0, 1.0,     0, 1,
+
+        var qVerts = haxe.io.Float32Array.fromArray([
+            1.0,1.0,-1.0,1.0,1.0,1.0,1.0,-1.0,1.0,1.0,-1.0,-1.0,-1.0,-1.0,-1.0,-1.0,-1.0,1.0,-1.0,1.0,1.0,-1.0,1.0,-1.0,-1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,-1.0,-1.0,1.0,-1.0,-1.0,-1.0,-1.0,1.0,-1.0,-1.0,1.0,-1.0,1.0,-1.0,-1.0,1.0,1.0,-1.0,1.0,1.0,1.0,1.0,-1.0,1.0,1.0,-1.0,-1.0,1.0,-1.0,1.0,-1.0,1.0,1.0,-1.0,1.0,-1.0,-1.0,-1.0,-1.0,-1.0
         ]);
-        var qInds = haxe.io.UInt16Array.fromArray([0, 1, 2, 0, 2, 3]);
-        
-        vBuf = rd.createVertexBuffer(20*4, qVerts.view.buffer.getData(), RDIBufferUsage.STATIC, 5);
-        iBuf = rd.createIndexBuffer(6*2, qInds.view.buffer.getData(), RDIBufferUsage.STATIC);
+        var qInds = haxe.io.UInt16Array.fromArray([
+            0,1,3,1,2,3,4,5,7,5,6,7,8,9,11,9,10,11,12,13,15,13,14,15,16,17,19,17,18,19,20,21,23,21,22,23
+        ]);
+
+        vBuf = rd.createVertexBuffer(qVerts.view.byteLength, qVerts.view.buffer.getData(), RDIBufferUsage.STATIC);
+        iBuf = rd.createIndexBuffer(qInds.view.byteLength, qInds.view.buffer.getData(), RDIBufferUsage.STATIC);
         prog = rd.createProgram(vsSrc, fsSrc);
 
         // create a texture
-        tex = rd.createTexture(RDITextureTypes.TEX2D, 256, 256, RDITextureFormats.RGBA8, false, true);
-        rd.uploadTextureData(tex, 0, 0, null);
-
-        this.app.assets.bytes("resources/uv.png").then(function(_tmp:AssetBytes) {
-            var imgBytes = haxe.io.Bytes.ofData(_tmp.bytes.toBytes().getData());
-            var png = new format.png.Reader(new haxe.io.BytesInput(imgBytes)).read();
-            rd.uploadTextureData(tex, 0, 0, format.png.Tools.extract32(png, null, #if js false #else true #end).getData());
-        });
+        tex = rd.createTexture(RDITextureTypes.TEXCUBE, 512, 512, RDITextureFormats.RGBA8, false, true);
+        for (i in 0...6) {
+            rd.uploadTextureData(tex, i, 0, null);
+            this.app.assets.bytes("resources/hills_" + i + ".png").then(function(_tmp:AssetBytes) {
+                var imgBytes = haxe.io.Bytes.ofData(_tmp.bytes.toBytes().getData());
+                var png = new format.png.Reader(new haxe.io.BytesInput(imgBytes)).read();
+                rd.uploadTextureData(tex, i, 0, format.png.Tools.extract32(png, null, #if js true #else false #end).getData());
+            });
+        }
 
         // bind the shader, query the locations of the uniforms and upload new data
         rd.bindProgram(prog);
         var loc = rd.getUniformLoc(prog, "viewProjMat");
         rd.setUniform(loc, RDIShaderConstType.FLOAT4x4, mProj.rawData);
 
-        loc = rd.getUniformLoc(prog, "worldMat");
-        rd.setUniform(loc, RDIShaderConstType.FLOAT4x4, mWorld.rawData);
+        mWorldLoc = rd.getUniformLoc(prog, "worldMat");
+        rd.setUniform(mWorldLoc, RDIShaderConstType.FLOAT4x4, mWorld.rawData);
 
         loc = rd.getSamplerLoc(prog, "uSampler");
         rd.setSampler(loc, 0); // assign texUnit0 to uSampler
 
         rd.setVertexLayout(vertLayout);
-        rd.setVertexBuffer(0, vBuf, 0, 20);
+        rd.setVertexBuffer(0, vBuf, 0, 12);
         rd.setIndexBuffer(iBuf);
         rd.setTexture(0, tex, RDISamplerState.FILTER_BILINEAR); // assign texture to texUnit0
+        rd.setCullMode(RDICullModes.NONE); // we render inner box
     }
 /*
     static function onCtxLost(_ctx:RenderContext):Void
@@ -125,10 +128,15 @@ class Main extends snow.App.App {
         rd.destroyTexture(tex);
     }
 */
-
+    static var rot:Float = 0;
     override function update( delta:Float ) {
+        // rotate the skybox around
+        rot += 10 * delta;
+        mWorld.setOrientation(math.Quat.rotateY(rot));
+        rd.setUniform(mWorldLoc, RDIShaderConstType.FLOAT4x4, mWorld.rawData);
+
         // clear framebuffer and draw the bound resources
         rd.clear(RDIClearFlags.ALL, 0, 0, 0.8);
-        rd.draw(RDIPrimType.TRIANGLES, RDIDataType.UNSIGNED_SHORT, 6, 0);
+        rd.draw(RDIPrimType.TRIANGLES, RDIDataType.UNSIGNED_SHORT, 36, 0);
     }
 }

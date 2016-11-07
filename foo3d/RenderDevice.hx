@@ -159,12 +159,12 @@ class RDIVertexLayout
     public var numAttribs:Int;
     public var attribs:Array<RDIVertexLayoutAttrib>;
     
-    public function new()
+    public function new(_caps:RDIDeviceCaps)
     {
         numAttribs = 0;
         //attribs = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // 16
         attribs = [];
-        for (i in 0...16)
+        for (i in 0..._caps.maxVertAttribs)
             attribs.push(new RDIVertexLayoutAttrib());
     }
 }
@@ -657,7 +657,7 @@ class AbstractRenderDevice
         for (i in 0...16)
         {
             m_vertBufSlots.push(null);
-            m_vertexLayouts.push(new RDIVertexLayout());
+            m_vertexLayouts.push(new RDIVertexLayout(m_caps));
         }
 
         for (i in 0...m_caps.maxTextureUnits)
