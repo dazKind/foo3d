@@ -78,10 +78,10 @@ class Main extends snow.App.App {
         ]);
         
         var qVerts = haxe.io.Float32Array.fromArray([ // position + uv
-            -1.0, -1.0, 1.0,    0, 0,
-            1.0, -1.0, 1.0,     1, 0,
-            1.0, 1.0, 1.0,      1, 1,
-            -1.0, 1.0, 1.0,     0, 1,
+            -1.0, -1.0, 1.0,    0, 1,
+            1.0, -1.0, 1.0,     1, 1,
+            1.0, 1.0, 1.0,      1, 0,
+            -1.0, 1.0, 1.0,     0, 0,
         ]);
         var qInds = haxe.io.UInt16Array.fromArray([0, 1, 2, 0, 2, 3]);
         
@@ -93,10 +93,8 @@ class Main extends snow.App.App {
         tex = rd.createTexture(RDITextureTypes.TEX2D, 256, 256, RDITextureFormats.RGBA8, false, true);
         rd.uploadTextureData(tex, 0, 0, null);
 
-        this.app.assets.bytes("resources/uv.png").then(function(_tmp:AssetBytes) {
-            var imgBytes = haxe.io.Bytes.ofData(_tmp.bytes.toBytes().getData());
-            var png = new format.png.Reader(new haxe.io.BytesInput(imgBytes)).read();
-            rd.uploadTextureData(tex, 0, 0, format.png.Tools.extract32(png, null, #if js false #else true #end).getData());
+        this.app.assets.image("resources/uv.png").then(function(_tmp:AssetImage) {
+            rd.uploadTextureData(tex, 0, 0, _tmp.image.pixels.toBytes().getData());
         });
 
         // bind the shader, query the locations of the uniforms and upload new data
