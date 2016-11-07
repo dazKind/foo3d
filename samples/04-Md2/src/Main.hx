@@ -64,7 +64,7 @@ class Main extends snow.App.App {
     public function new() {}
 
     override function config( config:AppConfig ) : AppConfig {
-        config.window.title = "03-Skybox";
+        config.window.title = "04-Md2";
         config.window.width = 960;
         config.window.height = 480;
         config.render.stencil = 8;
