@@ -182,7 +182,6 @@ class Main extends snow.App.App {
     static var rot:Float = 0;
     static var fpsTimer:Float = 0;
     static var animFPS:Float = 0.1;
-    static var deltaTime:Float = 0;
     override function update( deltaTime:Float ) {
 
         // animate the model

@@ -1,19 +1,21 @@
 package ;
 
-import math.Mat44;
-import Binary;
-import Md2Parser;
-
-import foo3d.utils.Frame;
 import foo3d.RenderDevice;
 import foo3d.RenderContext;
+import math.Mat44;
+import Md2Parser;
 
-class Sample 
-{
+import snow.types.Types;
+
+typedef UserConfig = {}
+
+@:log_as('app')
+class Main extends snow.App.App {
+
     static var rd:RenderDevice;
     static var base:SampleBase = new SampleBase();
 
-    static var playAnimation:Bool = false;
+    static var playAnimation:Bool = true;
     static var showGlow:Bool = true;
     static var curFrame:Int = 0;    
     static var nextFrame:Int = 1;
@@ -54,40 +56,20 @@ class Sample
     
     public function new() {}
 
-#if lime
-    public function ready (lime:lime.Lime):Void {
-        onCtxCreated(lime.render.direct_renderer_handle);
+    override function config( config:AppConfig ) : AppConfig {
+        config.window.title = "05-Glow";
+        config.window.width = 960;
+        config.window.height = 480;
+        config.render.stencil = 8;
+        config.render.depth = 24;
+        return config;
     }
-    private function render ():Void {
-        onCtxUpdate(null);
-    }
-    public function ontouchbegin(touch_item:Dynamic):Void {
-        playAnimation = !playAnimation;
-    }
-    public function onresize(_evt:Dynamic):Void {
-        trace(_evt);
-        width = _evt.x;
-        height = _evt.y;
-        mProjPersp = Mat44.createPerspLH(60, width/height, 0.1, 100.0);
-    }
-#else
-    static function main() 
-    {
-        base.registerOnKeyDown(onKeyDown);
 
-        Frame.onCtxCreated.add(onCtxCreated);
-        Frame.onCtxLost.add(onCtxLost);
-        Frame.onCtxUpdate.add(onCtxUpdate);        
-        Frame.requestContext({name:"foo3d-stage", width:800, height:600});
-    }
-#end
-
-    static function onCtxCreated(_ctx:RenderContext):Void
-    {
+    override function ready() {
         // create device and basic settings
-        width = 800;
-        height = 600;
-        rd = new RenderDevice(_ctx);
+        width = this.app.runtime.window_width();
+        height = this.app.runtime.window_height();
+        rd = new RenderDevice(#if js snow.modules.opengl.GL.gl #else null #end);
         rd.setViewport(0, 0, width, height);
         rd.setScissorRect(0, 0, width, height);
 
@@ -101,21 +83,19 @@ class Sample
         mWorldMat.appendScale(0.1, 0.1, 0.1);
 
         // prep the model
-        processMd2(#if !lime "../../Common/" + #end "resources/tekkblade.md2");
+        processMd2("resources/tekkblade.md2");
 
         // load the textures
-        var texSrc:String = #if !lime "../../Common/" + #end "resources/tekkblade.png";
         texDiffuse = rd.createTexture(RDITextureTypes.TEX2D, 256, 256, RDITextureFormats.RGBA8, false, true);
         rd.uploadTextureData(texDiffuse, 0, 0, null);
-        ImageLoader.loadImage(texSrc, function(_data:Dynamic):Void {
-            rd.uploadTextureData(texDiffuse, 0, 0, _data);
+        this.app.assets.image("resources/tekkblade.png").then(function(_tmp:AssetImage) {           
+            rd.uploadTextureData(texDiffuse, 0, 0, _tmp.image.pixels.toBytes().getData());
         });
         
-        texSrc = #if !lime "../../Common/" + #end "resources/fire.png";
         texGlow = rd.createTexture(RDITextureTypes.TEX2D, 512, 512, RDITextureFormats.RGBA8, false, true);
         rd.uploadTextureData(texGlow, 0, 0, null);        
-        ImageLoader.loadImage(texSrc, function(_data:Dynamic):Void {
-            rd.uploadTextureData(texGlow, 0, 0, _data);
+        this.app.assets.image("resources/fire.png").then(function(_tmp:AssetImage) {           
+            rd.uploadTextureData(texGlow, 0, 0, _tmp.image.pixels.toBytes().getData());
         });
         
         // build the necessary programs
@@ -143,7 +123,7 @@ class Sample
         glowSceneFBO = rd.createRenderBuffer(512, 512, RDITextureFormats.RGBA8, true, 1, 0);
         glowBlurFBO = rd.createRenderBuffer(512, 512, RDITextureFormats.RGBA8, true, 1, 0);
     }
-
+    /*
     static function onCtxLost(_ctx:RenderContext):Void
     {
         base.cleanUpDefaults(rd);
@@ -163,20 +143,15 @@ class Sample
         rd.destroyRenderBuffer(glowSceneFBO);
         rd.destroyRenderBuffer(glowBlurFBO);
     }
+    */
 
     static var rot:Float = 0;
     static var fpsTimer:Float = 0;
     static var animFPS:Float = 0.1;    
     static var scrollTimer:Float = 0;
     static var scrollFPS:Float = 1.0;
-    static var deltaTime:Float = 0;
-    static var time:Float = haxe.Timer.stamp();
 
-    static function onCtxUpdate(_):Void
-    {
-        var curTime = (haxe.Timer.stamp());
-        deltaTime = curTime - time;
-
+    override function update( deltaTime:Float ) {
         // rotate the model
         rot += 10 * deltaTime;
         mWorldMat.recompose(
@@ -214,8 +189,8 @@ class Sample
             rd.setViewport(0, 0, 512,  512);
             rd.clear(RDIClearFlags.ALL, 0, 0, 0);
             rd.bindProgram(diffuseProg);
-            rd.setUniform(diffuseLocs.get("viewProjMat"), RDIShaderConstType.FLOAT44, mProjPersp.rawData);
-            rd.setUniform(diffuseLocs.get("worldMat"), RDIShaderConstType.FLOAT44, mWorldMat.rawData);
+            rd.setUniform(diffuseLocs.get("viewProjMat"), RDIShaderConstType.FLOAT4x4, mProjPersp.rawData);
+            rd.setUniform(diffuseLocs.get("worldMat"), RDIShaderConstType.FLOAT4x4, mWorldMat.rawData);
             rd.setUniform(diffuseLocs.get("interp"), RDIShaderConstType.FLOAT, [t]);
             rd.setUniform(diffuseLocs.get("time"), RDIShaderConstType.FLOAT, [tmp]);
             rd.setSampler(diffuseLocs.get("tex"), 0);
@@ -227,19 +202,19 @@ class Sample
             rd.setIndexBuffer(md2IBuf);
             rd.setDepthFunc();
             rd.setBlendFunc(RDIBlendFactors.ONE, RDIBlendFactors.ZERO);
-            rd.draw(RDIPrimType.TRIANGLES, md2.header.numTris * 3, 0);
+            rd.draw(RDIPrimType.TRIANGLES, RDIDataType.UNSIGNED_SHORT, md2.header.numTris * 3, 0);
             
             // blur quad
             rd.bindRenderBuffer(glowBlurFBO);
             rd.clear(RDIClearFlags.ALL, 0, 0, 0);
             rd.bindProgram(blurProg);
-            rd.setUniform(blurLocs.get("viewProjMat"), RDIShaderConstType.FLOAT44, mProjOrtho.rawData);
+            rd.setUniform(blurLocs.get("viewProjMat"), RDIShaderConstType.FLOAT4x4, mProjOrtho.rawData);
             rd.setSampler(blurLocs.get("tex"), 0);
             rd.setTexture(0, rd.getRenderBufferTex(glowSceneFBO), RDISamplerState.FILTER_BILINEAR);
             rd.setVertexLayout(base.vlPosUv);
-            rd.setVertexBuffer(0, base.vbFsQuad, 0, 5);
+            rd.setVertexBuffer(0, base.vbFsQuad, 0, 20);
             rd.setIndexBuffer(base.ibFsQuad);
-            rd.draw(RDIPrimType.TRIANGLES, 6, 0);
+            rd.draw(RDIPrimType.TRIANGLES, RDIDataType.UNSIGNED_SHORT, 6, 0);
         }
 
         {
@@ -248,8 +223,8 @@ class Sample
             rd.setViewport(0, 0, width, height);
             rd.clear(RDIClearFlags.ALL, 0, 0, 0.1);       
             rd.bindProgram(diffuseProg);
-            rd.setUniform(diffuseLocs.get("viewProjMat"), RDIShaderConstType.FLOAT44, mProjPersp.rawData);
-            rd.setUniform(diffuseLocs.get("worldMat"), RDIShaderConstType.FLOAT44, mWorldMat.rawData);
+            rd.setUniform(diffuseLocs.get("viewProjMat"), RDIShaderConstType.FLOAT4x4, mProjPersp.rawData);
+            rd.setUniform(diffuseLocs.get("worldMat"), RDIShaderConstType.FLOAT4x4, mWorldMat.rawData);
             rd.setUniform(diffuseLocs.get("interp"), RDIShaderConstType.FLOAT, [t]);
             rd.setUniform(diffuseLocs.get("time"), RDIShaderConstType.FLOAT, [0]);
             rd.setSampler(diffuseLocs.get("tex"), 0);
@@ -261,26 +236,26 @@ class Sample
             rd.setIndexBuffer(md2IBuf);
             rd.setDepthFunc();
             rd.setBlendFunc(RDIBlendFactors.ONE, RDIBlendFactors.ZERO);
-            rd.draw(RDIPrimType.TRIANGLES, md2.header.numTris * 3, 0);
+            rd.draw(RDIPrimType.TRIANGLES, RDIDataType.UNSIGNED_SHORT, md2.header.numTris * 3, 0);
 
             if (showGlow)
             {
                 // combine quad and apply horizontal blur
                 rd.bindProgram(combineProg);
-                rd.setUniform(combineLocs.get("viewProjMat"), RDIShaderConstType.FLOAT44, mProjOrtho.rawData);
+                rd.setUniform(combineLocs.get("viewProjMat"), RDIShaderConstType.FLOAT4x4, mProjOrtho.rawData);
                 rd.setSampler(combineLocs.get("tex"), 0);
                 rd.setTexture(0, rd.getRenderBufferTex(glowBlurFBO), RDISamplerState.FILTER_BILINEAR);
                 rd.setVertexLayout(base.vlPosUv);
-                rd.setVertexBuffer(0, base.vbFsQuad, 0, 5);
+                rd.setVertexBuffer(0, base.vbFsQuad, 0, 20);
                 rd.setIndexBuffer(base.ibFsQuad);
                 rd.setDepthFunc(RDITestModes.DISABLE);
                 rd.setBlendFunc(RDIBlendFactors.ONE, RDIBlendFactors.ONE);
-                rd.draw(RDIPrimType.TRIANGLES, 6, 0);
+                rd.draw(RDIPrimType.TRIANGLES, RDIDataType.UNSIGNED_SHORT, 6, 0);
             }
         }
-        time = curTime;
     }
 
+    /*
     static function onKeyDown(_evt:Dynamic):Void
     {
         switch(_evt.keyCode)
@@ -289,6 +264,7 @@ class Sample
             case 65: playAnimation = !playAnimation; // a
         }
     }
+    */
 
     static function processMd2(_id:String):Void
     {
@@ -300,38 +276,38 @@ class Sample
         for (i in 0...md2.header.numFrames)
         {
             var f = md2.frames[i];            
-            var verts:Array<Float> = [];
+            var verts = new haxe.io.Float32Array(md2.header.numTris*9);
             for (j in 0...md2.header.numTris)
             {
-                verts.push(f.verts[md2.triangles[j].vertInds[0]].x);
-                verts.push(f.verts[md2.triangles[j].vertInds[0]].y);
-                verts.push(f.verts[md2.triangles[j].vertInds[0]].z);
+                verts[(j*9)+0] = f.verts[md2.triangles[j].vertInds[0]].x;
+                verts[(j*9)+1] = f.verts[md2.triangles[j].vertInds[0]].y;
+                verts[(j*9)+2] = f.verts[md2.triangles[j].vertInds[0]].z;
 
-                verts.push(f.verts[md2.triangles[j].vertInds[1]].x);
-                verts.push(f.verts[md2.triangles[j].vertInds[1]].y);
-                verts.push(f.verts[md2.triangles[j].vertInds[1]].z);
+                verts[(j*9)+3] = f.verts[md2.triangles[j].vertInds[1]].x;
+                verts[(j*9)+4] = f.verts[md2.triangles[j].vertInds[1]].y;
+                verts[(j*9)+5] = f.verts[md2.triangles[j].vertInds[1]].z;
 
-                verts.push(f.verts[md2.triangles[j].vertInds[2]].x);
-                verts.push(f.verts[md2.triangles[j].vertInds[2]].y);
-                verts.push(f.verts[md2.triangles[j].vertInds[2]].z);
+                verts[(j*9)+6] = f.verts[md2.triangles[j].vertInds[2]].x;
+                verts[(j*9)+7] = f.verts[md2.triangles[j].vertInds[2]].y;
+                verts[(j*9)+8] = f.verts[md2.triangles[j].vertInds[2]].z;
             }
-            md2VBuffers.push(rd.createVertexBuffer(verts.length*4, ByteTools.floats(verts), RDIBufferUsage.STATIC, 3));
+            md2VBuffers.push(rd.createVertexBuffer(verts.view.byteLength, verts.view.buffer.getData(), RDIBufferUsage.STATIC));
         }
         // move the uvs into a VBO
-        var uv:Array<Float> = [];
+        var uv = new haxe.io.Float32Array(md2.header.numTris*6);
         for (i in 0...md2.header.numTris)
         {
-            uv.push(md2.uv[md2.triangles[i].uvInds[0]].x);
-            uv.push(md2.uv[md2.triangles[i].uvInds[0]].y);
-            uv.push(md2.uv[md2.triangles[i].uvInds[1]].x);
-            uv.push(md2.uv[md2.triangles[i].uvInds[1]].y);
-            uv.push(md2.uv[md2.triangles[i].uvInds[2]].x);
-            uv.push(md2.uv[md2.triangles[i].uvInds[2]].y);
+            uv[(i*6)+0] = md2.uv[md2.triangles[i].uvInds[0]].x;
+            uv[(i*6)+1] = md2.uv[md2.triangles[i].uvInds[0]].y;
+            uv[(i*6)+2] = md2.uv[md2.triangles[i].uvInds[1]].x;
+            uv[(i*6)+3] = md2.uv[md2.triangles[i].uvInds[1]].y;
+            uv[(i*6)+4] = md2.uv[md2.triangles[i].uvInds[2]].x;
+            uv[(i*6)+5] = md2.uv[md2.triangles[i].uvInds[2]].y;
         }
         // make a simple IBO
-        var ind:Array<Int> = [];
+        var ind = new haxe.io.UInt16Array(md2.header.numTris*3);
         for (i in 0...md2.header.numTris*3)
-            ind.push(i);
+            ind[i] = i;
 
         // register our layout
         md2VertLayout = rd.registerVertexLayout([
@@ -339,7 +315,7 @@ class Sample
             new RDIVertexLayoutAttrib("vPosDst", 1, 3, 0),
             new RDIVertexLayoutAttrib("vUv", 2, 2, 0),
         ]);
-        md2UvBuf = rd.createVertexBuffer(uv.length*4, ByteTools.floats(uv), RDIBufferUsage.STATIC, 2);
-        md2IBuf = rd.createIndexBuffer(ind.length*2, ByteTools.uShorts(ind), RDIBufferUsage.STATIC);
+        md2UvBuf = rd.createVertexBuffer(uv.view.byteLength, uv.view.buffer.getData(), RDIBufferUsage.STATIC);
+        md2IBuf = rd.createIndexBuffer(ind.view.byteLength, ind.view.buffer.getData(), RDIBufferUsage.STATIC);
     }
 }

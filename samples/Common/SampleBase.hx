@@ -30,28 +30,28 @@ class SampleBase
     {
         vlPosUv = _rd.registerVertexLayout([
             new RDIVertexLayoutAttrib("vPos", 0, 3, 0),
-            new RDIVertexLayoutAttrib("vUv", 0, 2, 3),
+            new RDIVertexLayoutAttrib("vUv", 0, 2, 12),
         ]);
         vbFsQuad = _rd.createVertexBuffer(
             20*4, 
-            ByteTools.floats([   
+            haxe.io.Float32Array.fromArray([   
                 0.0, 1.0, 0.0,     0.0, 0.0,
                 1.0, 0.0, 0.0,     1.0, 1.0,
                 1.0, 1.0, 0.0,     1.0, 0.0,
                 0.0, 0.0, 0.0,     0.0, 1.0
-            ]),
+            ]).view.buffer.getData(),
             RDIBufferUsage.STATIC, 
             5
         );
         uvFsQuad = _rd.createVertexBuffer(
             8*4, 
-            ByteTools.floats([0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0]),
+            haxe.io.Float32Array.fromArray([0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0]).view.buffer.getData(),
             RDIBufferUsage.STATIC, 
             2
         );
         ibFsQuad = _rd.createIndexBuffer(
             6*2,
-            ByteTools.uShorts([1, 3, 0, 2, 1, 0]),
+            haxe.io.UInt16Array.fromArray([1, 3, 0, 2, 1, 0]).view.buffer.getData(),
             RDIBufferUsage.STATIC
         );
     }
@@ -61,23 +61,5 @@ class SampleBase
         _rd.destroyBuffer(vbFsQuad);
         _rd.destroyBuffer(uvFsQuad);
         _rd.destroyBuffer(ibFsQuad);
-    }
-
-    public function registerOnClick(_cb:Dynamic->Void):Void
-    {
-#if js    
-        (cast Browser.window).addEventListener("click", _cb, false);
-#elseif flash
-        Lib.current.stage.addEventListener(MouseEvent.CLICK, _cb);
-#end
-    }
-
-    public function registerOnKeyDown(_cb:Dynamic->Void):Void
-    {
-#if js    
-        (cast Browser.window).addEventListener("keydown", _cb, false);
-#elseif flash
-        Lib.current.stage.addEventListener(KeyboardEvent.KEY_DOWN, _cb);
-#end
     }
 }
