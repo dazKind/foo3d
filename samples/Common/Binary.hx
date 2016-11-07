@@ -30,15 +30,15 @@ class Binary
 
         var s = load_binary_resource(_url);
 
-        var a = new Array();
+        var a = new haxe.io.BytesBuffer();
 
         // utf8-decode
         for( i in 0...s.length ) {
             var c : Int = StringTools.fastCodeAt(s,i);
-            a.push(c & 0xff);
+            a.addByte(c & 0xff);
         }
 
-        return Bytes.ofData(a);
+        return a.getBytes();
 #elseif flash
         return haxe.Resource.getBytes(_url);
 #elseif lime

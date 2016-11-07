@@ -157,6 +157,8 @@ class WebGLRenderDevice extends AbstractRenderDevice
         m_ctx.activeTexture(RenderingContext.TEXTURE0+m_lastTexUnit);
         m_ctx.bindTexture(tex.type, tex.glObj);
 
+        m_ctx.pixelStorei(RenderingContext.UNPACK_FLIP_Y_WEBGL, 0);
+
         var inputFormat:Int = RenderContext.RGBA;
         var inputType:Int = RenderContext.UNSIGNED_BYTE;
 

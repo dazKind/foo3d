@@ -94,10 +94,8 @@ class Main extends snow.App.App {
         tex = rd.createTexture(RDITextureTypes.TEXCUBE, 512, 512, RDITextureFormats.RGBA8, false, true);
         for (i in 0...6) {
             rd.uploadTextureData(tex, i, 0, null);
-            this.app.assets.bytes("resources/hills_" + i + ".png").then(function(_tmp:AssetBytes) {
-                var imgBytes = haxe.io.Bytes.ofData(_tmp.bytes.toBytes().getData());
-                var png = new format.png.Reader(new haxe.io.BytesInput(imgBytes)).read();
-                rd.uploadTextureData(tex, i, 0, format.png.Tools.extract32(png, null, #if js true #else false #end).getData());
+            this.app.assets.image("resources/hills_" + i + ".png").then(function(_tmp:AssetImage) {
+                rd.uploadTextureData(tex, i, 0, _tmp.image.pixels.toBytes().getData());
             });
         }
 
