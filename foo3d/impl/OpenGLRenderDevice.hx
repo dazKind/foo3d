@@ -20,9 +20,10 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
             _size, 
             _usageHint);
 
+        var old = GL.getIntegerv(GL.ARRAY_BUFFER_BINDING);
         GL.bindBuffer(buf.type, buf.glObj);
         GL.bufferData(buf.type, buf.size, _data, _usageHint);
-        GL.bindBuffer(buf.type, 0);
+        GL.bindBuffer(buf.type, old);
         
         m_bufferMem += buf.size;
         return m_buffers.add( buf );
@@ -35,9 +36,10 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
             _size, 
             _usageHint);
         
+        var old = GL.getIntegerv(GL.ELEMENT_ARRAY_BUFFER_BINDING);
         GL.bindBuffer(buf.type, buf.glObj);
         GL.bufferData(buf.type, buf.size, _data, _usageHint);
-        GL.bindBuffer(buf.type, 0);
+        GL.bindBuffer(buf.type, old);
         
         m_bufferMem += buf.size;
         return m_buffers.add( buf );
@@ -55,9 +57,10 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
 
     override public function updateVertexBufferData(_handle:Int, _offset:Int, _size:Int, _data:VertexBufferData):Void {
         var buf:RDIBuffer = m_buffers.getRef(_handle);
+        var old = GL.getIntegerv(GL.ARRAY_BUFFER_BINDING);
         GL.bindBuffer(buf.type, buf.glObj);
         GL.bufferSubData(buf.type, _offset, _size, _data);
-        GL.bindBuffer(buf.type, 0);
+        GL.bindBuffer(buf.type, old);
     }
     
     override public function updateIndexBufferData(_handle:Int, _offset:Int, _size:Int, _data:IndexBufferData):Void {
@@ -572,13 +575,15 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
             }
         }
 
-        for (i in 0...m_caps.maxVertAttribs) {
+        for (i in 0...16) {
             var curBit:Int = 1 << i;
             if ((newVertexAttribMask & curBit) != (m_activeVertexAttribsMask & curBit)) {
-                if ((newVertexAttribMask & curBit) == curBit)
+                if ((newVertexAttribMask & curBit) == curBit) {
                     GL.enableVertexAttribArray(i);
-                else
+                }
+                else {
                     GL.disableVertexAttribArray(i);
+                }
             }
         }
         m_activeVertexAttribsMask = newVertexAttribMask;
@@ -751,7 +756,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
     }
 
     override public function resetStates():Void {
-        for (i in 0...m_caps.maxVertAttribs)
+        for (i in 0...16)
             GL.disableVertexAttribArray(i);
         super.resetStates();
     }
@@ -851,7 +856,7 @@ extern class GL {
     }
 
     inline public static function bufferSubData(_type:Int, _offset:Int, _size:Int, _data:BytesData):Void
-        untyped __cpp__("glBufferSubDataARB({0}, {1}, {2}, (const void*)&({3}[0]))", _type, _offset, _size, _data);
+        untyped __cpp__("glBufferSubData({0}, {1}, {2}, (const void*)&({3}[0]))", _type, _offset, _size, _data);
 
     @:native("glActiveTexture")
     public static function activeTexture(_tex:Int):Void;
@@ -860,13 +865,13 @@ extern class GL {
     public static function bindTexture(_target:Int, _tex:Int):Void;
 
     inline public static function vertexAttribPointer(_index:Int, _size:Int, _type:Int, _normalized:Bool, _stride:Int, _offset:Int):Void
-        untyped __cpp__("glVertexAttribPointer({0}, {1}, {2}, {3}, {4}, (const void*){5})", _index, _size, _type, _normalized, _stride, _offset);
-
+        untyped __cpp__("glVertexAttribPointer({0}, {1}, {2}, {3}, {4}, (char*)0+{5})", _index, _size, _type, _normalized, _stride, _offset);
+    
     @:native("glEnableVertexAttribArray")
-    public static function enableVertexAttribArray(_index:Int):Void;
+    public static function enableVertexAttribArray(_index:cpp.UInt32):Void;
 
     @:native("glDisableVertexAttribArray")
-    public static function disableVertexAttribArray(_index:Int):Void;
+    public static function disableVertexAttribArray(_index:cpp.UInt32):Void;
 
     @:native("glTexParameteri")
     public static function texParameteri(_target:Int, _pname:Int, _param:Int):Void;
@@ -1030,7 +1035,7 @@ extern class GL {
     public static function uniform1i(_loc:Int, _data:Int):Void;
 
     inline public static function drawElements(_primType:Int, _type:Int, _numInds:Int, _offset:Int):Void
-        untyped __cpp__("glDrawElements({0}, {1}, {2}, (const void*){3})", _primType, _numInds, _type, _offset);
+        untyped __cpp__("glDrawElements({0}, {1}, {2}, (const void*)({3}))", _primType, _numInds, _type, _offset);
 
     @:native("glDrawArrays")
     public static function drawArrays(_primType:Int, _offset:Int, _size:Int):Void;
@@ -1128,6 +1133,8 @@ extern class GL {
     inline public static var VERSION:Int =     0x1F02;
     inline public static var EXTENSIONS:Int =  0x1F03;
 
+    inline public static var ARRAY_BUFFER_BINDING:Int = 0x8894;
+    inline public static var ELEMENT_ARRAY_BUFFER_BINDING:Int = 0x8895;
     inline public static var UNSIGNED_BYTE:Int = 0x1401;
     inline public static var UNSIGNED_SHORT:Int = 0x1403;
     inline public static var FLOAT:Int = 0x1406;

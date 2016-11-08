@@ -164,7 +164,7 @@ class RDIVertexLayout
         numAttribs = 0;
         //attribs = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // 16
         attribs = [];
-        for (i in 0..._caps.maxVertAttribs)
+        for (i in 0...16)
             attribs.push(new RDIVertexLayoutAttrib());
     }
 }
