@@ -65,13 +65,17 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
     
     override public function updateIndexBufferData(_handle:Int, _offset:Int, _size:Int, _data:IndexBufferData):Void {
         var buf:RDIBuffer = m_buffers.getRef(_handle);
+        var old = GL.getIntegerv(GL.ELEMENT_ARRAY_BUFFER_BINDING);
         GL.bindBuffer(buf.type, buf.glObj);
         GL.bufferSubData(buf.type, _offset, _size, _data);        
+        GL.bindBuffer(buf.type, old);
         
+        /*
         if(m_curIndexBuf != 0) // rebind the old one
             GL.bindBuffer(buf.type, m_buffers.getRef(m_curIndexBuf).glObj);
         else
             GL.bindBuffer(buf.type, 0);
+        */
     }
 
     override public function createTexture(_type:Int, _width:Int, _height:Int, _format:Int, _hasMips:Bool, _genMips:Bool, ?_hintIsRenderTarget:Bool=false):Int { 
