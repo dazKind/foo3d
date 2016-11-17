@@ -230,6 +230,7 @@ class RDITextureTypes
 
 class RDITextureFormats
 {
+    inline public static var RGB8:Int = 0x8051;
     inline public static var RGBA8:Int = 0x8058;
     inline public static var RGBA16F:Int = 0x881A;
     inline public static var RGBA32F:Int = 0x8814;

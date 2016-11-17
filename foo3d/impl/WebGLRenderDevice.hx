@@ -40,7 +40,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
         var e:String = "[Foo3D] - Supported extensions by browser:\n";
         for (s in supportedExtensions) {
             e += s + "\n";
-            m_ctx.getExtension(s);
+            m_ctx.getExtension(s); // TODO: HACK!!!
         }
         trace(e);
     }

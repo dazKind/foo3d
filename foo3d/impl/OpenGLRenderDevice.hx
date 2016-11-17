@@ -129,6 +129,8 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
 
         switch (tex.format)
         {
+            case RDITextureFormats.RGB8:
+                inputFormat = GL.RGB;
             case RDITextureFormats.RGBA16F, RDITextureFormats.RGBA32F:
                 inputFormat = GL.RGBA;
                 inputType = GL.FLOAT;
@@ -1142,7 +1144,8 @@ extern class GL {
     inline public static var UNSIGNED_BYTE:Int = 0x1401;
     inline public static var UNSIGNED_SHORT:Int = 0x1403;
     inline public static var FLOAT:Int = 0x1406;
-    inline public static var RED:Int = 0x1903 ;
+    inline public static var RED:Int = 0x1903;    
+    inline public static var RGB:Int = 0x1907;    
     inline public static var RGBA:Int = 0x1908;
     inline public static var CULL_FACE:Int = 0x0B44;
     inline public static var DEPTH_TEST:Int = 0x0B71;
