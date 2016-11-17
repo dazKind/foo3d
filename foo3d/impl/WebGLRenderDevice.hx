@@ -121,6 +121,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
 
         switch (_format)
         {
+            case RDITextureFormats.RGB8: throw "[Foo3D - ERROR] - TextureFormats.RGB8 is not supported";
             case RDITextureFormats.RGBA8, RDITextureFormats.RGBA16F: tex.glFmt = RenderContext.RGBA;
             case RDITextureFormats.DEPTH: tex.glFmt = RenderContext.DEPTH_COMPONENT;
         }        
@@ -170,7 +171,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
             case RDITextureFormats.DEPTH: 
                 //inputFormat = RenderContext.DEPTH_COMPONENT;
                 //inputType = RenderContext.FLOAT;
-                throw "[Foo3D - ERROR] - TextureFormats.DEPTH not supported yet";
+                throw "[Foo3D - ERROR] - TextureFormats.DEPTH is not supported";
         }
 
         var target:Int = (tex.type == RDITextureTypes.TEX2D) ? 
