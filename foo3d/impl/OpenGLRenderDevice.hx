@@ -393,19 +393,19 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
         if (_depth)
         {
             GL.bindFramebuffer(GL.FRAMEBUFFER, rb.fbo);
-            var texObj:Int = this.createTexture(RDITextureTypes.TEX2D, rb.width, rb.height, GL.DEPTH24_STENCIL8, false, false, true);
+            var texObj:Int = this.createTexture(RDITextureTypes.TEX2D, rb.width, rb.height, RDITextureFormats.DEPTH, false, false, true);
             GL.texParameteri(RDITextureTypes.TEX2D, GL.TEXTURE_COMPARE_MODE, GL.NONE);
             this.uploadTextureData(texObj, 0, 0, null);
             rb.depthTex = texObj;
             var tex:RDITexture = m_textures.getRef(texObj);
-            GL.framebufferTexture2D(GL.DEPTH_STENCIL_ATTACHMENT, tex.glObj);
+            GL.framebufferTexture2D(GL.DEPTH_ATTACHMENT, tex.glObj);
 
             if (_samples > 0) {
                 GL.bindFramebuffer(GL.FRAMEBUFFER, rb.fboMS);
                 rb.depthBufObj = GL.genRenderbuffer();
                 GL.bindRenderbuffer(GL.RENDERBUFFER, rb.depthBufObj);
-                GL.renderbufferStorageMultisample(rb.samples, GL.DEPTH24_STENCIL8, rb.width, rb.height);
-                GL.framebufferRenderbuffer(GL.DEPTH_STENCIL_ATTACHMENT, rb.depthBufObj);
+                GL.renderbufferStorageMultisample(rb.samples, RDITextureFormats.DEPTH, rb.width, rb.height);
+                GL.framebufferRenderbuffer(GL.DEPTH_ATTACHMENT, rb.depthBufObj);
             }
         }
 
@@ -649,7 +649,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
             if ((mask & ARD.PM_DEPTH_MASK) == ARD.PM_DEPTH_MASK) 
             {
                 if (m_newDepthMask != m_curDepthMask) {
-                    GL.depthMask(m_newDepthMask == true ? 1 : 0);
+                    GL.depthMask(m_newDepthMask);
                     m_curDepthMask = m_newDepthMask;
                 }
                 m_pendingMask &= ~ARD.PM_DEPTH_MASK;
@@ -681,7 +681,6 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
             if((mask & ARD.PM_BLEND_EQ) == ARD.PM_BLEND_EQ)
             {
                 if (m_newBlendEq != m_curBlendEq) {
-
                     if (m_blendEqBuffer != -1)
                         GL.blendEquationBuffer(m_blendEqBuffer, m_newBlendEq);
                     else
@@ -719,7 +718,6 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
                     if (m_texSlots[i].texObj != 0) {
                         var tex:RDITexture = m_textures.getRef(m_texSlots[i].texObj);
                         GL.bindTexture(tex.type, tex.glObj);
-
                         if (tex.samplerState != m_texSlots[i].samplerState) {
                             tex.samplerState = m_texSlots[i].samplerState;
                             applySamplerState(tex);
@@ -777,6 +775,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
         {
             mask |= GL.DEPTH_BUFFER_BIT;
             GL.clearDepth(_depth);
+            this.setDepthMask(true); // important: glClear(GL.DEPTH_BUFFER_BIT) needs depthmasking to work
         }
         if ((_flags & RDIClearFlags.COLOR) == RDIClearFlags.COLOR)
         {
@@ -789,7 +788,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
         }
         if (mask != 0)
         {
-            commitStates( ARD.PM_VIEWPORT | ARD.PM_SCISSOR );
+            commitStates( ARD.PM_VIEWPORT | ARD.PM_SCISSOR | ARD.PM_DEPTH_MASK );
             GL.clear(mask);
         }
     }
@@ -1126,7 +1125,7 @@ extern class GL {
     public static function blendFunc(_src:Int, _dst:Int):Void;
 
     @:native("glDepthMask")
-    public static function depthMask(_flags:Int):Void;
+    public static function depthMask(_flag:Bool):Void;
 
     @:native("glBlendEquation")
     public static function blendEquation(_mode:Int):Void;
