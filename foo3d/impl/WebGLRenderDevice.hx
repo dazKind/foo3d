@@ -768,6 +768,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
         {
             mask |= RenderContext.DEPTH_BUFFER_BIT;
             m_ctx.clearDepth(_depth);
+            this.setDepthMask(true); // important: glClear(GL.DEPTH_BUFFER_BIT) needs depthmasking to work
         }
         if ((_flags & RDIClearFlags.COLOR) == RDIClearFlags.COLOR)
         {
@@ -780,7 +781,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
         }
         if (mask != 0)
         {
-            commitStates( ARD.PM_VIEWPORT | ARD.PM_SCISSOR );
+            commitStates( ARD.PM_VIEWPORT | ARD.PM_SCISSOR | ARD.PM_DEPTH_MASK );
             m_ctx.clear(mask);
         }
     }
