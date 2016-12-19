@@ -78,7 +78,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
         */
     }
 
-    override public function createTexture(_type:Int, _width:Int, _height:Int, _format:Int, _hasMips:Bool, _genMips:Bool, ?_hintIsRenderTarget:Bool=false):Int { 
+    override public function createTexture(_type:Int, _width:Int, _height:Int, _format:Int, _hasMips:Bool, _genMips:Bool, _isCompressed:Bool):Int { 
     	if (!m_caps.texNPOTSupport) {
     		if( (_width & (_width-1)) != 0 || (_height & (_height-1)) != 0 )
     			trace("[Foo3D - WARNING] - Texture has non-power-of-two dimensions! GPU has no support for that!");
@@ -91,6 +91,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
         tex.height = _height;
         tex.genMips = _genMips;
         tex.hasMips = _hasMips;
+        tex.isCompressed = _isCompressed;
         tex.glFmt = _format;
 
         tex.glObj = GL.createTexture();
@@ -118,7 +119,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
         return m_textures.add( tex );
     }
 
-    override public function uploadTextureData(_handle:Int, _slice:Int, _mipLevel:Int, _pixels:PixelData):Void {
+    override public function uploadTextureData(_handle:Int, _slice:Int, _mipLevel:Int, _pixels:PixelData, ?_formatOverride:Int=0, ?_typeOverride:Int=0, ?_imageSize:Int=0):Void {
         var tex:RDITexture = m_textures.getRef(_handle);
 
         GL.activeTexture(GL.TEXTURE0+m_lastTexUnit);
@@ -127,22 +128,47 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
         var inputFormat:Int = GL.RGBA;
         var inputType:Int = GL.UNSIGNED_BYTE;
 
-        switch (tex.format)
-        {
-            case RDITextureFormats.RGB8:
-                inputFormat = GL.RGB;
-            case RDITextureFormats.RGBA16F, RDITextureFormats.RGBA32F:
-                inputFormat = GL.RGBA;
-                inputType = GL.FLOAT;
-            case RDITextureFormats.R16F, RDITextureFormats.R16UI:
-                inputFormat = GL.RED;
-                inputType = GL.UNSIGNED_SHORT;
-            case RDITextureFormats.DEPTH:
-                inputFormat = GL.DEPTH_COMPONENT;
-                inputType = GL.FLOAT;
-            case GL.DEPTH24_STENCIL8:
-                inputFormat = GL.DEPTH_STENCIL;
-                inputType = GL.UNSIGNED_INT_24_8;
+        if (_formatOverride != 0) {
+            inputFormat = _formatOverride;
+        } else {
+            switch (tex.format)
+            {
+                case RDITextureFormats.RGB8:
+                    inputFormat = GL.RGB;
+                case RDITextureFormats.RGBA16F, RDITextureFormats.RGBA32F:
+                    inputFormat = GL.RGBA;
+                    inputType = GL.FLOAT;
+                case RDITextureFormats.R16UI:
+                    inputFormat = GL.RED;
+                    inputType = GL.UNSIGNED_SHORT;
+                case RDITextureFormats.R16F:
+                    inputFormat = GL.RED;
+                    inputType = GL.FLOAT;
+                case RDITextureFormats.DEPTH:
+                    inputFormat = GL.DEPTH_COMPONENT;
+                    inputType = GL.FLOAT;
+                case GL.DEPTH24_STENCIL8:
+                    inputFormat = GL.DEPTH_STENCIL;
+                    inputType = GL.UNSIGNED_INT_24_8;
+            }
+        }
+
+        if (_typeOverride != 0) {
+            inputType = _typeOverride;
+        } else {
+            switch (tex.format)
+            {
+                case RDITextureFormats.RGBA16F, RDITextureFormats.RGBA32F:
+                    inputType = GL.FLOAT;
+                case RDITextureFormats.R16UI:
+                    inputType = GL.UNSIGNED_SHORT;
+                case RDITextureFormats.R16F:
+                    inputType = GL.FLOAT;
+                case RDITextureFormats.DEPTH:
+                    inputType = GL.FLOAT;
+                case GL.DEPTH24_STENCIL8:
+                    inputType = GL.UNSIGNED_INT_24_8;
+            }
         }
 
         // Calculate size of next mipmap using "floor" convention
@@ -152,10 +178,15 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
         var target:Int = (tex.type == RDITextureTypes.TEX2D) ? 
             RDITextureTypes.TEX2D : (GL.TEXTURE_CUBE_MAP_POSITIVE_X + _slice);
 
-        if (_pixels == null) // we wanna upload an empty buffer
+        if (_pixels == null) {// we wanna upload an empty buffer
+            //if (tex.isCompressed == false)
             GL.texImage2D(target, _mipLevel, tex.glFmt, width, height, 0, inputFormat, inputType, null);
-        else
-            GL.texImage2D(target, _mipLevel, tex.glFmt, width, height, 0, inputFormat, inputType, _pixels);
+        } else {
+            if (tex.isCompressed == true)
+                GL.compressedTexImage2D(target, _mipLevel, inputFormat, width, height, 0, _imageSize, _pixels);
+            else
+                GL.texImage2D(target, _mipLevel, tex.glFmt, width, height, 0, inputFormat, inputType, _pixels);
+        }
 
         // Note: for cube maps mips are only generated when the side with the highest index is uploaded
         if (tex.genMips && (tex.type != RDITextureTypes.TEXCUBE || _slice == 5))
@@ -354,7 +385,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
 
                 GL.bindFramebuffer(GL.FRAMEBUFFER, rb.fbo);
                 // create the color texture
-                var texObj:Int = this.createTexture(RDITextureTypes.TEX2D, rb.width, rb.height, _format, false, false, true);
+                var texObj:Int = this.createTexture(RDITextureTypes.TEX2D, rb.width, rb.height, _format, false, false, false);
                 this.uploadTextureData(texObj, 0, 0, null);
                 rb.colTexs[j] = texObj;
                 var tex:RDITexture = m_textures.getRef(texObj);
@@ -393,7 +424,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
         if (_depth)
         {
             GL.bindFramebuffer(GL.FRAMEBUFFER, rb.fbo);
-            var texObj:Int = this.createTexture(RDITextureTypes.TEX2D, rb.width, rb.height, RDITextureFormats.DEPTH, false, false, true);
+            var texObj:Int = this.createTexture(RDITextureTypes.TEX2D, rb.width, rb.height, RDITextureFormats.DEPTH, false, false, false);
             GL.texParameteri(RDITextureTypes.TEX2D, GL.TEXTURE_COMPARE_MODE, GL.NONE);
             this.uploadTextureData(texObj, 0, 0, null);
             rb.depthTex = texObj;
@@ -902,6 +933,12 @@ extern class GL {
             _target, _mipLevel, _format, _width, _height, _border, _inputFormat, _inputType, tmp);
     }
 
+    inline public static function compressedTexImage2D(_target:Int, _mipLevel:Int, _format:Int, _width:Int, _height:Int, _border:Int, _imageSize:Int, _data:BytesData):Void {
+        var tmp = _data;
+        untyped __cpp__("glCompressedTexImage2D({0}, {1}, {2}, {3}, {4}, {5}, {6}, (const void*)&({7}[0]))", 
+            _target, _mipLevel, _format, _width, _height, _border, _imageSize, tmp);
+    }
+
     @:native("glGenerateMipmap")
     public static function generateMipmap(_target:Int):Void;
 
@@ -1140,6 +1177,7 @@ extern class GL {
 
     inline public static var ARRAY_BUFFER_BINDING:Int = 0x8894;
     inline public static var ELEMENT_ARRAY_BUFFER_BINDING:Int = 0x8895;
+    inline public static var BYTE:Int = 0x1400;
     inline public static var UNSIGNED_BYTE:Int = 0x1401;
     inline public static var UNSIGNED_SHORT:Int = 0x1403;
     inline public static var FLOAT:Int = 0x1406;
@@ -1177,12 +1215,27 @@ extern class GL {
     inline public static var COLOR_ATTACHMENT0:Int = 0x8CE0;
     inline public static var DEPTH_ATTACHMENT:Int = 0x8D00;
     inline public static var DEPTH_STENCIL_ATTACHMENT:Int = 0x821A;
-
     inline public static var DEPTH24_STENCIL8:Int = 0x88F0;
     inline public static var DEPTH_STENCIL:Int = 0x84F9;
-    inline public static var UNSIGNED_INT_24_8:Int = 0x84FA;   
-
-    
+    inline public static var UNSIGNED_INT_24_8:Int = 0x84FA;
+    inline public static var COMPRESSED_RED_RGTC1:Int = 0x8DBB;
+    inline public static var COMPRESSED_SIGNED_RED_RGTC1:Int = 0x8DBC;
+    inline public static var COMPRESSED_RG_RGTC2:Int = 0x8DBD;
+    inline public static var COMPRESSED_SIGNED_RG_RGTC2:Int = 0x8DBE;
+    inline public static var COMPRESSED_RGBA_BPTC_UNORM:Int = 0x8E8C;
+    inline public static var COMPRESSED_SRGB_ALPHA_BPTC_UNORM:Int = 0x8E8D;
+    inline public static var COMPRESSED_RGB_BPTC_SIGNED_FLOAT:Int = 0x8E8E;
+    inline public static var COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT:Int = 0x8E8F;
+    inline public static var COMPRESSED_RGB8_ETC2:Int = 0x9274;
+    inline public static var COMPRESSED_SRGB8_ETC2:Int = 0x9275;
+    inline public static var COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2:Int = 0x9276;
+    inline public static var COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2:Int = 0x9277;
+    inline public static var COMPRESSED_RGBA8_ETC2_EAC:Int = 0x9278;
+    inline public static var COMPRESSED_SRGB8_ALPHA8_ETC2_EAC:Int = 0x9279;
+    inline public static var COMPRESSED_R11_EAC:Int = 0x9270;
+    inline public static var COMPRESSED_SIGNED_R11_EAC:Int = 0x9271;
+    inline public static var COMPRESSED_RG11_EAC:Int = 0x9272;
+    inline public static var COMPRESSED_SIGNED_RG11_EAC:Int = 0x9273;
     inline public static var NONE:Int = 0;
     inline public static var TEXTURE_COMPARE_MODE:Int = 0x884C;
     inline public static var FRAMEBUFFER:Int = 0x8D40;

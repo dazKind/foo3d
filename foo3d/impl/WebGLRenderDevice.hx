@@ -109,7 +109,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
             m_ctx.bindBuffer(buf.type, null);
     }
 
-    override public function createTexture(_type:Int, _width:Int, _height:Int, _format:Int, _hasMips:Bool, _genMips:Bool, ?_hintIsRenderTarget:Bool=false):Int
+    override public function createTexture(_type:Int, _width:Int, _height:Int, _format:Int, _hasMips:Bool, _genMips:Bool, _isCompressed:Bool):Int
     {
         var tex = new RDITexture();
         tex.type = _type;
@@ -118,6 +118,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
         tex.height = _height;
         tex.genMips = _genMips;
         tex.hasMips = _hasMips;
+        tex.isCompressed = _isCompressed;
 
         switch (_format)
         {
@@ -151,7 +152,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
         return m_textures.add( tex );
     }
 
-    override public function uploadTextureData(_handle:Int, _slice:Int, _mipLevel:Int, _pixels:PixelData):Void
+    override public function uploadTextureData(_handle:Int, _slice:Int, _mipLevel:Int, _pixels:PixelData, ?_formatOverride:Int=0, ?_typeOverride:Int=0, ?_imageSize:Int=0):Void {
     {
         var tex:RDITexture = m_textures.getRef(_handle);
 

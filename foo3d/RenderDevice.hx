@@ -224,14 +224,18 @@ class RDIVertBufSlot
 
 class RDITextureTypes
 {
+    inline public static var TEX1D:Int       = 0x0DE0;
     inline public static var TEX2D:Int       = 0x0DE1;
+    inline public static var TEX3D:Int       = 0x806F;
     inline public static var TEXCUBE:Int     = 0x8513;
 }
 
 class RDITextureFormats
 {
     inline public static var RGB8:Int = 0x8051;
+    inline public static var RGB16:Int = 0x8054;
     inline public static var RGBA8:Int = 0x8058;
+    inline public static var RGBA16:Int = 0x805B;
     inline public static var RGBA16F:Int = 0x881A;
     inline public static var RGBA32F:Int = 0x8814;
     inline public static var R16F:Int = 0x822D;
@@ -255,6 +259,7 @@ class RDITexture
     
     public var hasMips:Bool;
     public var genMips:Bool;
+    public var isCompressed:Bool;
     
     public function new()
     {
@@ -268,6 +273,7 @@ class RDITexture
         samplerState = 0;
         hasMips = false;
         genMips = false;
+        isCompressed = false;
     }
 }
 
@@ -695,8 +701,8 @@ class AbstractRenderDevice
     //=============================================================================
     // textures
     //=============================================================================
-    public function createTexture(_type:Int, _width:Int, _height:Int, _format:Int, _hasMips:Bool, _genMips:Bool, ?_hintIsRenderTarget:Bool=false):Int { throw "NOT IMPLEMENTED"; return 0; }
-    public function uploadTextureData(_handle:Int, _slice:Int, _mipLevel:Int, _pixels:PixelData):Void { throw "NOT IMPLEMENTED"; }
+    public function createTexture(_type:Int, _width:Int, _height:Int, _format:Int, _hasMips:Bool, _genMips:Bool, _isCompressed:Bool):Int { throw "NOT IMPLEMENTED"; return 0; }
+    public function uploadTextureData(_handle:Int, _slice:Int, _mipLevel:Int, _pixels:PixelData, ?_formatOverride:Int=0, ?_typeOverride:Int=0, ?_imageSize:Int=0):Void { throw "NOT IMPLEMENTED"; }
     public function destroyTexture(_handle:Int):Void { throw "NOT IMPLEMENTED"; }
     public function calcTextureSize(_format:Int, _width:Int, _height:Int):Int
     {
