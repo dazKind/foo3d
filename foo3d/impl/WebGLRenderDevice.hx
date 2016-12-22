@@ -152,7 +152,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
         return m_textures.add( tex );
     }
 
-    override public function uploadTextureData(_handle:Int, _slice:Int, _mipLevel:Int, _pixels:PixelData, ?_formatOverride:Int=0, ?_typeOverride:Int=0, ?_imageSize:Int=0):Void {
+    override public function uploadTextureData(_handle:Int, _slice:Int, _mipLevel:Int, _pixels:PixelData, ?_formatOverride:Int=0, ?_typeOverride:Int=0, ?_imageSize:Int=0):Void
     {
         var tex:RDITexture = m_textures.getRef(_handle);
 
@@ -164,29 +164,45 @@ class WebGLRenderDevice extends AbstractRenderDevice
         var inputFormat:Int = RenderContext.RGBA;
         var inputType:Int = RenderContext.UNSIGNED_BYTE;
 
-        switch (tex.format)
-        {
-            case RDITextureFormats.RGBA16F:
-                inputFormat = RenderContext.RGBA;
-                inputType = RenderContext.FLOAT;
-            case RDITextureFormats.DEPTH: 
-                //inputFormat = RenderContext.DEPTH_COMPONENT;
-                //inputType = RenderContext.FLOAT;
-                throw "[Foo3D - ERROR] - TextureFormats.DEPTH is not supported";
+        if (_formatOverride != 0) {
+            inputFormat = _formatOverride;
+        } else {
+            switch (tex.format)
+            {
+                case RDITextureFormats.RGBA16F:
+                    inputFormat = RenderContext.RGBA;
+                case RDITextureFormats.DEPTH: 
+                    //inputFormat = RenderContext.DEPTH_COMPONENT;
+                    throw "[Foo3D - ERROR] - TextureFormats.DEPTH is not supported";
+            }
         }
+        if (_typeOverride != 0) {
+            inputType = _typeOverride;
+        } else {
+            switch (tex.format)
+            {
+                case RDITextureFormats.RGBA16F:
+                    inputType = RenderContext.FLOAT;
+                case RDITextureFormats.DEPTH: 
+                    //inputType = RenderContext.FLOAT;
+                    throw "[Foo3D - ERROR] - TextureFormats.DEPTH is not supported";
+            }
+        }
+
+        // Calculate size of next mipmap using "floor" convention
+        var width:Int = Std.int(Math.max(tex.width >> _mipLevel, 1));
+        var height:Int = Std.int(Math.max(tex.height >> _mipLevel, 1));
 
         var target:Int = (tex.type == RDITextureTypes.TEX2D) ? 
             RenderContext.TEXTURE_2D : (RenderContext.TEXTURE_CUBE_MAP_POSITIVE_X + _slice);
 
         if (_pixels == null) // we wanna upload an empty buffer
-        {
-            // Calculate size of next mipmap using "floor" convention
-            var width:Int = Std.int(Math.max(tex.width >> _mipLevel, 1));
-            var height:Int = Std.int(Math.max(tex.height >> _mipLevel, 1));
             m_ctx.texImage2D(target, _mipLevel, tex.glFmt, width, height, 0, inputFormat, inputType, null);
-        }
         else
-            m_ctx.texImage2D(target, _mipLevel, tex.glFmt, inputFormat, inputType, new js.html.ImageData(new js.html.Uint8ClampedArray(_pixels), tex.width, tex.height));
+            if (tex.isCompressed == true)
+                m_ctx.compressedTexImage2D(target, _mipLevel, inputFormat, width, height, 0, new js.html.Uint8Array(_pixels));
+            else
+                m_ctx.texImage2D(target, _mipLevel, tex.glFmt, width, height, 0, inputFormat, inputType, new js.html.Uint8Array(_pixels));
 
         // Note: for cube maps mips are only generated when the side with the highest index is uploaded
         if (tex.genMips && (tex.type != RDITextureTypes.TEXCUBE || _slice == 5)) {
