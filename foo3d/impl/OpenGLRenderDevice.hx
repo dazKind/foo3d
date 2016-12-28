@@ -190,9 +190,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
 
         // Note: for cube maps mips are only generated when the side with the highest index is uploaded
         if (tex.genMips && (tex.type != RDITextureTypes.TEXCUBE || _slice == 5))
-        {
             GL.generateMipmap(tex.type);
-        }
 
         GL.bindTexture(tex.type, 0);
 
@@ -658,6 +656,14 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
 
             // Set scissor rect
             if ((mask & ARD.PM_SCISSOR) == ARD.PM_SCISSOR) {
+                if (m_scissorEnabled && m_scX == m_vpX && m_scY == m_vpY && m_scWidth == m_vpWidth && m_scHeight == m_vpHeight) {
+                    GL.disable(GL.SCISSOR_TEST);
+                    m_scissorEnabled = false;
+                }
+                else if (!m_scissorEnabled) {
+                    GL.enable(GL.SCISSOR_TEST);
+                    m_scissorEnabled = true;
+                }
                 GL.scissor(m_scX, m_scY, m_scWidth, m_scHeight);
                 m_pendingMask &= ~ARD.PM_SCISSOR;
             }
@@ -852,7 +858,7 @@ extern class GL {
         _caps.rtMultisampling = untyped __cpp__("GLEW_EXT_framebuffer_multisample==1");
 
         var val:Int = 0;
-        untyped __cpp__('glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &val)');
+        untyped __cpp__('glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &{0})', val);
         _caps.maxVertAttribs = val;
         
         untyped __cpp__('glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS, &val)');
@@ -867,8 +873,8 @@ extern class GL {
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     inline public static function getString(_enum:Int):String { // totally lifted from linc_opengl. Thx sven :)
-        untyped __cpp__("const char* __val = (const char*)glGetString({0}); if(!__val)__val=\"\"", _enum);
-        return untyped __cpp__("::String(__val)");
+        var res = untyped __cpp__("::String((const char*)glGetString({0}))", _enum);
+        return res != null ? res : "";
     }
 
 
@@ -972,8 +978,8 @@ extern class GL {
             var cWritten:cpp.Int32 = 0;
             var iLog:cpp.RawPointer<cpp.Char> = untyped __cpp__("new char[{0}]", ilLength);
             untyped __cpp__('glGetShaderInfoLog({0}, {1}, &{2}, (char*){3});', _handle, ilLength, cWritten, iLog);
-            res = untyped __cpp__("::String(iLog)");
-            untyped __cpp__("delete[] iLog; iLog = NULL");
+            res = untyped __cpp__("::String({0})", iLog);
+            untyped __cpp__("delete[] {0}; {0} = NULL", iLog);
         }
         return res;
     }
@@ -1186,6 +1192,7 @@ extern class GL {
     inline public static var RGBA:Int = 0x1908;
     inline public static var CULL_FACE:Int = 0x0B44;
     inline public static var DEPTH_TEST:Int = 0x0B71;
+    inline public static var SCISSOR_TEST:Int = 0x0C11;
     inline public static var BLEND:Int = 0x0BE2;
     inline public static var LINEAR:Int = 0x2601;
     inline public static var NEAREST:Int = 0x2600;

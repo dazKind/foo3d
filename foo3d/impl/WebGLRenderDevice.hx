@@ -614,6 +614,14 @@ class WebGLRenderDevice extends AbstractRenderDevice
             // Set scissor rect
             if ((mask & ARD.PM_SCISSOR) == ARD.PM_SCISSOR)
             {
+                if (m_scissorEnabled && m_scX == m_vpX && m_scY == m_vpY && m_scWidth == m_vpWidth && m_scHeight == m_vpHeight) {
+                    m_ctx.disable(RenderingContext.SCISSOR_TEST);
+                    m_scissorEnabled = false;
+                }
+                else if (!m_scissorEnabled) {
+                    m_ctx.enable(RenderingContext.SCISSOR_TEST);
+                    m_scissorEnabled = true;
+                }
                 m_ctx.scissor(m_scX, m_scY, m_scWidth, m_scHeight);
                 m_pendingMask &= ~ARD.PM_SCISSOR;
             }

@@ -41,8 +41,8 @@ class RDIObjects<T>
     var m_objects:Array<T>;
     var m_freeList:Array<Int>;
     
-    public function new()
-    {
+    public function new(
+)    {
         m_objects = [];
         m_freeList = [];
     }
@@ -553,6 +553,7 @@ class AbstractRenderDevice
     var m_scY:Int;
     var m_scWidth:Int;
     var m_scHeight:Int;
+    var m_scissorEnabled:Bool;
     
     var m_curShaderId:Int;
     var m_prevShaderId:Int;
@@ -614,6 +615,7 @@ class AbstractRenderDevice
         m_scY = 0;
         m_scWidth = 320;
         m_scHeight = 240;
+        m_scissorEnabled = false;
 
         m_curShaderId = 0;
         m_prevShaderId = 0;
