@@ -605,6 +605,9 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
                     vbSlot.stride, 
                     vbSlot.offset + attrib.offset
                 );
+
+                if (m_caps.drawInstancedSupport)
+                    GL.vertexAttribDivisor(attribIndex, attrib.divisor);
                 
                 newVertexAttribMask |= 1 << attribIndex;
             }
@@ -839,6 +842,22 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
         if (commitStates())
             GL.drawArrays(_primType, _offset, _size);
     }
+
+    override public function drawInstanced(_primType:Int, _type:Int, _numInds:Int, _offset:Int, _primCount:Int):Void {
+        if (!m_caps.drawInstancedSupport)
+            trace("[Foo3D - WARNING] - Instanced drawing is not supported!");
+        else 
+            if (commitStates())
+                GL.drawElementsInstanced(_primType, _type, _numInds, _offset, _primCount);
+    }
+
+    override public function drawArraysInstanced(_primType:Int, _offset:Int, _size:Int, _primCount:Int):Void {
+        if (!m_caps.drawInstancedSupport)
+            trace("[Foo3D - WARNING] - Instanced drawing is not supported!");
+        else
+            if (commitStates())
+                GL.drawArraysInstanced(_primType, _offset, _size, _primCount);
+    }
 }
 
 @:keep
@@ -856,6 +875,7 @@ extern class GL {
         _caps.texFloatSupport = untyped __cpp__("GLEW_ARB_texture_float==1");
         _caps.texNPOTSupport = untyped __cpp__("GLEW_ARB_texture_non_power_of_two==1");
         _caps.rtMultisampling = untyped __cpp__("GLEW_EXT_framebuffer_multisample==1");
+        _caps.drawInstancedSupport = untyped __cpp__("GLEW_ARB_instanced_arrays==1");
 
         var val:Int = 0;
         untyped __cpp__('glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &{0})', val);
@@ -868,7 +888,7 @@ extern class GL {
         _caps.maxTextureUnits = val;
 
         untyped __cpp__('glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &val)');
-        _caps.maxColorAttachments = val;        
+        _caps.maxColorAttachments = val;
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////
@@ -909,11 +929,14 @@ extern class GL {
     inline public static function vertexAttribPointer(_index:Int, _size:Int, _type:Int, _normalized:Bool, _stride:Int, _offset:Int):Void
         untyped __cpp__("glVertexAttribPointer({0}, {1}, {2}, {3}, {4}, (char*)0+{5})", _index, _size, _type, _normalized, _stride, _offset);
     
+    @:native("glVertexAttribDivisor")
+    public static function vertexAttribDivisor(_index:Int, _divisor:Int):Void;
+
     @:native("glEnableVertexAttribArray")
-    public static function enableVertexAttribArray(_index:cpp.UInt32):Void;
+    public static function enableVertexAttribArray(_index:Int):Void;
 
     @:native("glDisableVertexAttribArray")
-    public static function disableVertexAttribArray(_index:cpp.UInt32):Void;
+    public static function disableVertexAttribArray(_index:Int):Void;
 
     @:native("glTexParameteri")
     public static function texParameteri(_target:Int, _pname:Int, _param:Int):Void;
@@ -1087,6 +1110,13 @@ extern class GL {
 
     @:native("glDrawArrays")
     public static function drawArrays(_primType:Int, _offset:Int, _size:Int):Void;
+
+    inline public static function drawElementsInstanced(_primType:Int, _type:Int, _numInds:Int, _offset:Int, _primCount:Int):Void
+        untyped __cpp__("glDrawElementsInstanced({0}, {1}, {2}, (const void*)({3}), {4})", 
+            _primType, _numInds, _type, _offset, _primCount);
+
+    @:native("glDrawArraysInstanced")
+    public static function drawArraysInstanced(_primType:Int, _offset:Int, _size:Int, _primCount:Int):Void;
 
     inline public static function getIntegerv(_target:Int):Int {
         var res:cpp.Int32 = 0;

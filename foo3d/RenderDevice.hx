@@ -82,6 +82,7 @@ class RDIDeviceCaps
     public var texFloatSupport:Bool;
     public var texNPOTSupport:Bool;
     public var rtMultisampling:Bool;
+    public var drawInstancedSupport:Bool;
     public var maxVertAttribs:Int;
     public var maxVertUniforms:Int;
     public var maxColorAttachments:Int;
@@ -91,6 +92,7 @@ class RDIDeviceCaps
     {
         texFloatSupport = false;
         texNPOTSupport = false;
+        drawInstancedSupport = false;
         maxVertAttribs = 0;
         maxVertUniforms = 0;
         maxTextureUnits = 0;
@@ -107,6 +109,7 @@ class RDIDeviceCaps
         res += "texNPOTSupport = " + texNPOTSupport + "\n";
         res += "rtMultisampling = " + rtMultisampling + "\n";
         res += "maxVertAttribs = " + maxVertAttribs + "\n";
+        res += "drawInstancedSupport = " + drawInstancedSupport + "\n";
         res += "maxVertUniforms = " + maxVertUniforms + "\n";
         res += "maxTextureUnits = " + maxTextureUnits + "\n";
         res += "maxColorAttachments = " + maxColorAttachments + "\n";
@@ -134,14 +137,22 @@ class RDIVertexLayoutAttrib
     public var size:Int;
     public var type:Int;
     public var offset:Int;
+    public var divisor:Int;
     
-    public function new(?_semanticName:String = "", ?_vbSlot:Int = 0, ?_size:Int = 0, ?_offset:Int = 0, ?_type:Int = RDIDataType.FLOAT)
-    {
+    inline public function new(
+        ?_semanticName:String = "", 
+        ?_vbSlot:Int = 0, 
+        ?_size:Int = 0, 
+        ?_offset:Int = 0, 
+        ?_type:Int = RDIDataType.FLOAT,
+        ?_divisor:Int = 0
+    ) {
         semanticName = _semanticName;
         vbSlot = _vbSlot;
         size = _size;
         offset = _offset;
         type = _type;
+        divisor = _divisor;
     }
 
     inline public function getTypeSize():Int {
@@ -788,6 +799,9 @@ class AbstractRenderDevice
     public function clear(_flags:Int, ?_r:Float = 0, ?_g:Float = 0, ?_b:Float = 0, ?_a:Float = 1, ?_depth:Float = 1):Void { throw "NOT IMPLEMENTED"; }
     public function draw(_primType:Int, _type:Int, _numInds:Int, _offset:Int):Void { throw "NOT IMPLEMENTED"; }
     public function drawArrays(_primType:Int, _offset:Int, _size:Int):Void { throw "NOT IMPLEMENTED"; }
+
+    public function drawInstanced(_primType:Int, _type:Int, _numInds:Int, _offset:Int, _primCount:Int):Void { throw "NOT IMPLEMENTED"; }
+    public function drawArraysInstanced(_primType:Int, _offset:Int, _size:Int, _primCount:Int):Void { throw "NOT IMPLEMENTED"; }
 
     //=============================================================================
     // commands

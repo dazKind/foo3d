@@ -15,6 +15,10 @@ import js.html.webgl.ActiveInfo;
 
 class WebGLRenderDevice extends AbstractRenderDevice
 {
+    var isWebGL2:Bool = false;
+    
+    var instancedExtANGLE:Dynamic;
+
     public function new(_ctx:RenderContext)
     {
         super(_ctx);
@@ -22,19 +26,24 @@ class WebGLRenderDevice extends AbstractRenderDevice
     
     override function init():Void
     {   
-        trace("[Foo3D] - " + m_ctx.getParameter(RenderingContext.VERSION) + " // " + 
+        var version = m_ctx.getParameter(RenderingContext.VERSION);
+        isWebGL2 = version.indexOf("WebGL 2") != -1;
+
+        trace("[Foo3D] - " + version + " // " + 
               m_ctx.getParameter(RenderingContext.SHADING_LANGUAGE_VERSION) + " // " + 
               m_ctx.getParameter(RenderingContext.VENDOR));
 
-        m_caps.texFloatSupport = m_ctx.getExtension("OES_texture_float") == null ? false : true;
+        // set default capabilities
+        m_caps.texFloatSupport = false;
         m_caps.texNPOTSupport = true;
         m_caps.rtMultisampling = false;
+        m_caps.drawInstancedSupport = false;
 
         m_caps.maxVertAttribs = m_ctx.getParameter(RenderingContext.MAX_VERTEX_ATTRIBS);
         m_caps.maxVertUniforms = m_ctx.getParameter(RenderingContext.MAX_VERTEX_UNIFORM_VECTORS);
         m_caps.maxTextureUnits = m_ctx.getParameter(RenderingContext.MAX_COMBINED_TEXTURE_IMAGE_UNITS);
         m_caps.maxColorAttachments = 1;
-        trace(m_caps.toString());
+        
 
         var supportedExtensions:Array<String> = m_ctx.getSupportedExtensions();
         var e:String = "[Foo3D] - Supported extensions by browser:\n";
@@ -42,6 +51,20 @@ class WebGLRenderDevice extends AbstractRenderDevice
             e += s + "\n";
             m_ctx.getExtension(s); // TODO: HACK!!!
         }
+
+        // check for further caps
+        if (isWebGL2) {
+            m_caps.texFloatSupport = true;
+            m_caps.drawInstancedSupport = true;
+        } else {
+            m_caps.texFloatSupport = m_ctx.getExtension("OES_texture_float") == null ? false : true;
+
+            instancedExtANGLE = m_ctx.getExtension("ANGLE_instanced_arrays");
+            if (instancedExtANGLE != null)
+                m_caps.drawInstancedSupport = true;
+        }
+
+        trace(m_caps.toString());
         trace(e);
     }
 
@@ -556,6 +579,12 @@ class WebGLRenderDevice extends AbstractRenderDevice
                     vbSlot.stride, 
                     vbSlot.offset + attrib.offset
                 );
+
+                if (m_caps.drawInstancedSupport)
+                    if (isWebGL2)
+                        untyped m_ctx.vertexAttribDivisor(attribIndex, attrib.divisor);
+                    else
+                        instancedExtANGLE.vertexAttribDivisorANGLE(attribIndex, attrib.divisor);
                 
                 newVertexAttribMask |= 1 << attribIndex;
             }
@@ -821,6 +850,31 @@ class WebGLRenderDevice extends AbstractRenderDevice
     {
         if (commitStates())
             m_ctx.drawArrays(_primType, _offset, _size);
+    }
+
+    override public function drawInstanced(_primType:Int, _type:Int, _numInds:Int, _offset:Int, _primCount:Int):Void {
+        if (!m_caps.drawInstancedSupport)
+            trace("[Foo3D - WARNING] - Instanced drawing is not supported!");
+        else 
+            if (commitStates()) {
+                if (isWebGL2)
+                    untyped m_ctx.drawElementsInstanced(_primType, _type, _numInds, _offset, _primCount);
+                else
+                    instancedExtANGLE.drawElementsInstancedANGLE(_primType, _type, _numInds, _offset, _primCount);
+            }
+    }
+
+    override public function drawArraysInstanced(_primType:Int, _offset:Int, _size:Int, _primCount:Int):Void {
+        if (!m_caps.drawInstancedSupport)
+            trace("[Foo3D - WARNING] - Instanced drawing is not supported!");
+        else
+            if (commitStates()) {
+                if (isWebGL2)
+                    untyped m_ctx.drawArraysInstanced(_primType, _offset, _size, _primCount);
+                else
+                    instancedExtANGLE.drawArraysInstancedANGLE(_primType, _offset, _size, _primCount);
+            }
+
     }
 }
 
