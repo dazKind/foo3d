@@ -1102,14 +1102,20 @@ extern class GL {
     inline static function uniform4iv(_loc:Int, _count:Int, _value:Array<Int>):Void
         untyped __cpp__("glUniform4iv({0}, {1}, (const GLint*)&({2}[0]))", _loc, _count, _value);
 
-    inline static function uniformMatrix3fv(_loc:Int, _transpose:Bool, _value:Array<cpp.Float32>):Void
-        untyped __cpp__("glUniformMatrix3fv({0}, {1}, {2}, (const GLfloat*)&({3}[0]))", _loc, _value.length/9, _transpose, _value);
+    inline static function uniformMatrix3fv(_loc:Int, _transpose:Bool, _value:Array<Float>):Void {
+        var tmp:Array<cpp.Float32> = cast _value;
+        untyped __cpp__("glUniformMatrix3fv({0}, {1}, {2}, (const GLfloat*)&({3}[0]))", _loc, tmp.length/9, _transpose, tmp);
+    }
 
-    inline static function uniformMatrix4fv(_loc:Int, _transpose:Bool, _value:Array<cpp.Float32>):Void
-        untyped __cpp__("glUniformMatrix4fv({0}, {1}, {2}, (const GLfloat*)&({3}[0]))", _loc, _value.length/16, _transpose, _value);
+    inline static function uniformMatrix4fv(_loc:Int, _transpose:Bool, _value:Array<Float>):Void {
+        var tmp:Array<cpp.Float32> = cast _value;
+        untyped __cpp__("glUniformMatrix4fv({0}, {1}, {2}, (const GLfloat*)&({3}[0]))", _loc, tmp.length/16, _transpose, tmp);
+    }
 
-    inline static function uniformMatrix2x4fv(_loc:Int, _transpose:Bool, _value:Array<cpp.Float32>):Void
-        untyped __cpp__("glUniformMatrix2x4fv({0}, {1}, {2}, (const GLfloat*)&({3}[0]))", _loc, _value.length/8, _transpose, _value);
+    inline static function uniformMatrix2x4fv(_loc:Int, _transpose:Bool, _value:Array<Float>):Void {
+        var tmp:Array<cpp.Float32> = cast _value;
+        untyped __cpp__("glUniformMatrix2x4fv({0}, {1}, {2}, (const GLfloat*)&({3}[0]))", _loc, tmp.length/8, _transpose, tmp);
+    }
 
     @:native("glUniform1i")
     public static function uniform1i(_loc:Int, _data:Int):Void;
