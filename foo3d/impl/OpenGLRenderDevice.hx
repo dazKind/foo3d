@@ -231,6 +231,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
         var success:Bool = GL.getShaderiv(fs, GL.COMPILE_STATUS) == 1;
         if (!success)
         {
+            trace(_fragmentShaderSrc);
             trace("[Foo3D - Error] - Fragment Shader: " + GL.getShaderInfoLog(fs));
             GL.deleteShader(vs);
             GL.deleteShader(fs);
@@ -1069,26 +1070,34 @@ extern class GL {
     @:native("glGetUniformLocation")
     public static function getUniformLocation(_prog:Int, _name:String):Int;
 
-    inline static function uniform1fv(_loc:Int, _count:Int, _value:Array<cpp.Float32>):Void
-        untyped __cpp__("glUniform1fv({0}, {1}, (const GLfloat*)&({2}[0]))", _loc, _count, _value);
+    inline static function uniform1fv(_loc:Int, _count:Int, _value:Array<Float>):Void {
+        var tmp:Array<cpp.Float32> = cast _value;
+        untyped __cpp__("glUniform1fv({0}, {1}, (const GLfloat*)&({2}[0]))", _loc, _count, tmp);
+    }
 
     inline static function uniform1iv(_loc:Int, _count:Int, _value:Array<Int>):Void
         untyped __cpp__("glUniform1iv({0}, {1}, (const GLint*)&({2}[0]))", _loc, _count, _value);
 
-    inline static function uniform2fv(_loc:Int, _count:Int, _value:Array<cpp.Float32>):Void
-        untyped __cpp__("glUniform2fv({0}, {1}, (const GLfloat*)&({2}[0]))", _loc, _count, _value);
+    inline static function uniform2fv(_loc:Int, _count:Int, _value:Array<Float>):Void {
+        var tmp:Array<cpp.Float32> = cast _value;
+        untyped __cpp__("glUniform2fv({0}, {1}, (const GLfloat*)&({2}[0]))", _loc, _count, tmp);
+    }
 
     inline static function uniform2iv(_loc:Int, _count:Int, _value:Array<Int>):Void
         untyped __cpp__("glUniform2iv({0}, {1}, (const GLint*)&({2}[0]))", _loc, _count, _value);
 
-    inline static function uniform3fv(_loc:Int, _count:Int, _value:Array<cpp.Float32>):Void
-        untyped __cpp__("glUniform3fv({0}, {1}, (const GLfloat*)&({2}[0]))", _loc, _count, _value);
+    inline static function uniform3fv(_loc:Int, _count:Int, _value:Array<Float>):Void {
+        var tmp:Array<cpp.Float32> = cast _value;
+        untyped __cpp__("glUniform3fv({0}, {1}, (const GLfloat*)&({2}[0]))", _loc, _count, tmp);
+    }
 
     inline static function uniform3iv(_loc:Int, _count:Int, _value:Array<Int>):Void
         untyped __cpp__("glUniform3iv({0}, {1}, (const GLint*)&({2}[0]))", _loc, _count, _value);
 
-    inline static function uniform4fv(_loc:Int, _count:Int, _value:Array<cpp.Float32>):Void
-        untyped __cpp__("glUniform4fv({0}, {1}, (const GLfloat*)&({2}[0]))", _loc, _count, _value);
+    inline static function uniform4fv(_loc:Int, _count:Int, _value:Array<Float>):Void {
+        var tmp:Array<cpp.Float32> = cast _value;
+        untyped __cpp__("glUniform4fv({0}, {1}, (const GLfloat*)&({2}[0]))", _loc, _count, tmp);
+    }
 
     inline static function uniform4iv(_loc:Int, _count:Int, _value:Array<Int>):Void
         untyped __cpp__("glUniform4iv({0}, {1}, (const GLint*)&({2}[0]))", _loc, _count, _value);
