@@ -834,8 +834,12 @@ class AbstractRenderDevice
     }
     public function setTexture(_slot:Int, _handle:Int, _samplerState:Int):Void
     {
-        m_texSlots[_slot] = new RDITexSlot(_handle, _samplerState);
-        m_pendingMask |= ARD.PM_TEXTURES;
+        var tex = m_texSlots[_slot];
+        if (tex.texObj != _handle || tex.samplerState != _samplerState) {
+            tex.texObj = _handle;
+            tex.samplerState = _samplerState;
+            m_pendingMask |= ARD.PM_TEXTURES;
+        }
     }
     public function setBlendEquation(?_mode:Int=RDIBlendEquationModes.ADD, ?_bufIndex:Int=-1) 
     {
