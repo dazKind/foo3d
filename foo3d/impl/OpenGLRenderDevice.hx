@@ -754,19 +754,22 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
             if((mask & ARD.PM_TEXTURES) == ARD.PM_TEXTURES) 
             {
                 for (i in 0...m_caps.maxTextureUnits) {
-                    GL.activeTexture(GL.TEXTURE0+i);
+                    var slot = m_texSlots[i];
 
-                    if (m_texSlots[i].texObj != 0) {
-                        var tex:RDITexture = m_textures.getRef(m_texSlots[i].texObj);
-                        GL.bindTexture(tex.type, tex.glObj);
-                        if (tex.samplerState != m_texSlots[i].samplerState) {
-                            tex.samplerState = m_texSlots[i].samplerState;
-                            applySamplerState(tex);
+                    if (slot.texObj != 0) {
+                        GL.activeTexture(GL.TEXTURE0+i);
+                        if (!slot.active) {
+                            GL.bindTexture(RDITextureTypes.TEXCUBE, 0);
+                            GL.bindTexture(RDITextureTypes.TEX2D, 0);
+                            slot.texObj = 0;
+                        } else {                            
+                            var tex:RDITexture = m_textures.getRef(slot.texObj);
+                            GL.bindTexture(tex.type, tex.glObj);
+                            if (tex.samplerState != slot.samplerState) {
+                                tex.samplerState = slot.samplerState;
+                                applySamplerState(tex);
+                            }
                         }
-                    }
-                    else {
-                        GL.bindTexture(RDITextureTypes.TEXCUBE, 0);
-                        GL.bindTexture(RDITextureTypes.TEX2D, 0);
                     }
                 }
 

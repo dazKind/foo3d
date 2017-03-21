@@ -752,6 +752,25 @@ class WebGLRenderDevice extends AbstractRenderDevice
             {
                 for (i in 0...m_caps.maxTextureUnits)
                 {
+                    var slot = m_texSlots[i];
+
+                    if (slot.texObj != 0) {
+                        m_ctx.activeTexture(RenderingContext.TEXTURE0+i);
+                        if (!slot.active) {
+                            m_ctx.bindTexture(RDITextureTypes.TEXCUBE, null);
+                            m_ctx.bindTexture(RDITextureTypes.TEX2D, null);
+                            slot.texObj = 0;
+                        } else {                            
+                            var tex:RDITexture = m_textures.getRef(slot.texObj);
+                            m_ctx.bindTexture(tex.type, tex.glObj);
+                            if (tex.samplerState != slot.samplerState) {
+                                tex.samplerState = slot.samplerState;
+                                applySamplerState(tex);
+                            }
+                        }
+                    }
+
+                    /*
                     m_ctx.activeTexture(RenderingContext.TEXTURE0+i);
 
                     if (m_texSlots[i].texObj != 0)
@@ -769,7 +788,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
                     {
                         m_ctx.bindTexture(RDITextureTypes.TEXCUBE, null);
                         m_ctx.bindTexture(RDITextureTypes.TEX2D, null);
-                    }
+                    }*/
                 }
 
                 m_pendingMask &= ~ARD.PM_TEXTURES;

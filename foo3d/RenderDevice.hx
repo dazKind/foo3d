@@ -292,11 +292,13 @@ class RDITexSlot
 {
     public var texObj:Int;
     public var samplerState:Int;
+    public var active:Bool;
     
     public function new(?_texObj = 0, ?_samplerState = 0)
     {
         texObj = _texObj;
         samplerState = _samplerState;
+        active = false;
     }
 }
 
@@ -808,15 +810,19 @@ class AbstractRenderDevice
     //=============================================================================
     public function setViewport(_x:Int, _y:Int, _width:Int, _height:Int):Void
     {
-        m_vpX = _x; m_vpY = _y; 
-        m_vpWidth = _width; m_vpHeight = _height;
-        m_pendingMask |= ARD.PM_VIEWPORT;
+        if (_x != m_vpX || _y != m_vpY || _width != m_vpWidth || _height != m_vpHeight) {
+            m_vpX = _x; m_vpY = _y; 
+            m_vpWidth = _width; m_vpHeight = _height;
+            m_pendingMask |= ARD.PM_VIEWPORT;
+        }
     }
     public function setScissorRect(_x:Int, _y:Int, _width:Int, _height:Int):Void
     {
-        m_scX = _x; m_scY = _y; 
-        m_scWidth = _width; m_scHeight = _height;
-        m_pendingMask |= ARD.PM_SCISSOR;
+        if (_x != m_scX || _y != m_scY || _width != m_scWidth || _height != m_scHeight) {
+            m_scX = _x; m_scY = _y; 
+            m_scWidth = _width; m_scHeight = _height;
+            m_pendingMask |= ARD.PM_SCISSOR;
+        }
     }
     public function setIndexBuffer(_handle:Int):Void
     {
@@ -835,11 +841,16 @@ class AbstractRenderDevice
     public function setTexture(_slot:Int, _handle:Int, _samplerState:Int):Void
     {
         var tex = m_texSlots[_slot];
-        if (tex.texObj != _handle || tex.samplerState != _samplerState) {
+        if (_handle == 0) {
+            tex.active = false;
+            m_pendingMask |= ARD.PM_TEXTURES;
+        } 
+        else if (tex.texObj != _handle || tex.samplerState != _samplerState) {
             tex.texObj = _handle;
             tex.samplerState = _samplerState;
+            tex.active = true;
             m_pendingMask |= ARD.PM_TEXTURES;
-        }
+        }        
     }
     public function setBlendEquation(?_mode:Int=RDIBlendEquationModes.ADD, ?_bufIndex:Int=-1) 
     {
