@@ -787,6 +787,9 @@ class AbstractRenderDevice
 
         m_activeVertexAttribsMask = 0;
 
+        m_curShaderId = 0;
+        m_prevShaderId = 0;
+
         m_pendingMask = 0xFFFFFFFF;
         commitStates();
     }

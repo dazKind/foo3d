@@ -344,16 +344,18 @@ class WebGLRenderDevice extends AbstractRenderDevice
 
     override public function bindProgram(_handle:Int):Void
     {
-        if (_handle != 0)
-        {
-            var shader:RDIShaderProgram = m_shaders.getRef(_handle);
-            m_ctx.useProgram(shader.oglProgramObj);
-        }
-        else
-            m_ctx.useProgram(null);
+        if (m_curShaderId != _handle) {
+            if (_handle != 0)
+            {
+                var shader:RDIShaderProgram = m_shaders.getRef(_handle);
+                m_ctx.useProgram(shader.oglProgramObj);
+            }
+            else
+                m_ctx.useProgram(null);
 
-        m_curShaderId = _handle;
-        m_pendingMask |= ARD.PM_VERTLAYOUT;
+            m_curShaderId = _handle;
+            m_pendingMask |= ARD.PM_VERTLAYOUT;
+        }
     }
 
     override public function getActiveUniformCount(_handle:Int):Int 
@@ -762,6 +764,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
                             slot.texObj = 0;
                         } else {                            
                             var tex:RDITexture = m_textures.getRef(slot.texObj);
+                            if (tex == null) continue;
                             m_ctx.bindTexture(tex.type, tex.glObj);
                             if (tex.samplerState != slot.samplerState) {
                                 tex.samplerState = slot.samplerState;
@@ -769,26 +772,6 @@ class WebGLRenderDevice extends AbstractRenderDevice
                             }
                         }
                     }
-
-                    /*
-                    m_ctx.activeTexture(RenderingContext.TEXTURE0+i);
-
-                    if (m_texSlots[i].texObj != 0)
-                    {
-                        var tex:RDITexture = m_textures.getRef(m_texSlots[i].texObj);
-                        m_ctx.bindTexture(tex.type, tex.glObj);
-
-                        if (tex.samplerState != m_texSlots[i].samplerState)
-                        {
-                            tex.samplerState = m_texSlots[i].samplerState;
-                            applySamplerState(tex);
-                        }
-                    }
-                    else
-                    {
-                        m_ctx.bindTexture(RDITextureTypes.TEXCUBE, null);
-                        m_ctx.bindTexture(RDITextureTypes.TEX2D, null);
-                    }*/
                 }
 
                 m_pendingMask &= ~ARD.PM_TEXTURES;

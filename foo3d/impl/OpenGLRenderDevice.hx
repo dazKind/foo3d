@@ -304,15 +304,17 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
     }
 
     override public function bindProgram(_handle:Int):Void {
-        if (_handle != 0) {
-            var shader:RDIShaderProgram = m_shaders.getRef(_handle);
-            GL.useProgram(shader.oglProgramObj);
-        }
-        else
-            GL.useProgram(0);
+        if (m_curShaderId != _handle) {
+            if (_handle != 0) {
+                var shader:RDIShaderProgram = m_shaders.getRef(_handle);
+                GL.useProgram(shader.oglProgramObj);
+            }
+            else
+                GL.useProgram(0);
 
-        m_curShaderId = _handle;
-        m_pendingMask |= ARD.PM_VERTLAYOUT;
+            m_curShaderId = _handle;
+            m_pendingMask |= ARD.PM_VERTLAYOUT;
+        }
     }
 
     override public function getActiveUniformCount(_handle:Int):Int {
@@ -764,6 +766,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
                             slot.texObj = 0;
                         } else {                            
                             var tex:RDITexture = m_textures.getRef(slot.texObj);
+                            if (tex == null) continue;
                             GL.bindTexture(tex.type, tex.glObj);
                             if (tex.samplerState != slot.samplerState) {
                                 tex.samplerState = slot.samplerState;
