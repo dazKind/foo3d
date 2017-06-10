@@ -877,7 +877,7 @@ extern class GL {
         var vendor = getString(VENDOR);
         var renderer = getString(RENDERER);
 
-        trace("[Foo3D] - Initializing GL backend using OpenGL driver " + version + " by " + vendor + " on " + renderer);
+        trace("\n[Foo3D] - [" + version + " / " + vendor + " / " + renderer + "]");
 
         _caps.texFloatSupport = untyped __cpp__("GLEW_ARB_texture_float==1");
         _caps.texNPOTSupport = untyped __cpp__("GLEW_ARB_texture_non_power_of_two==1");

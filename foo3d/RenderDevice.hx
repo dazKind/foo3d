@@ -41,8 +41,8 @@ class RDIObjects<T>
     var m_objects:Array<T>;
     var m_freeList:Array<Int>;
     
-    public function new(
-)    {
+    public function new()
+    {
         m_objects = [];
         m_freeList = [];
     }
@@ -100,7 +100,7 @@ class RDIDeviceCaps
     }
 
     public function toString():String {
-        var res:String = "[Foo3D] - Device Capabilities:\n";
+        var res:String = "\n[Foo3D] - Device Capabilities:\n";
 
         //for (key in Reflect.fields(this))
             //res += key + " = " + Reflect.field(this, key) + "\n";
