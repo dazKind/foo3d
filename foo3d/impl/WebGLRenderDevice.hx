@@ -142,13 +142,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
         tex.genMips = _genMips;
         tex.hasMips = _hasMips;
         tex.isCompressed = _isCompressed;
-
-        switch (_format)
-        {
-            case RDITextureFormats.RGB8: throw "[Foo3D - ERROR] - TextureFormats.RGB8 is not supported";
-            case RDITextureFormats.RGBA8, RDITextureFormats.RGBA16F: tex.glFmt = RenderContext.RGBA;
-            case RDITextureFormats.DEPTH: tex.glFmt = RenderContext.DEPTH_COMPONENT;
-        }        
+        tex.glFmt = _format;
 
         tex.glObj = m_ctx.createTexture();
         m_ctx.activeTexture(RenderingContext.TEXTURE0+m_lastTexUnit);
@@ -184,6 +178,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
 
         m_ctx.pixelStorei(RenderingContext.UNPACK_FLIP_Y_WEBGL, 0);
 
+        // RGBA8
         var inputFormat:Int = RenderContext.RGBA;
         var inputType:Int = RenderContext.UNSIGNED_BYTE;
 
@@ -192,23 +187,26 @@ class WebGLRenderDevice extends AbstractRenderDevice
         } else {
             switch (tex.format)
             {
-                case RDITextureFormats.RGBA16F:
+                case RDITextureFormats.RGB8:
+                    inputFormat = RenderContext.RGB;
+                case RDITextureFormats.RGBA16F, RDITextureFormats.RGBA32F:
                     inputFormat = RenderContext.RGBA;
-                case RDITextureFormats.DEPTH: 
-                    //inputFormat = RenderContext.DEPTH_COMPONENT;
-                    throw "[Foo3D - ERROR] - TextureFormats.DEPTH is not supported";
+                    inputType = RenderContext.FLOAT;
+                case RDITextureFormats.DEPTH:
+                    inputFormat = RenderContext.DEPTH_COMPONENT;
+                    inputType = RenderContext.FLOAT;
             }
         }
+
         if (_typeOverride != 0) {
             inputType = _typeOverride;
         } else {
             switch (tex.format)
             {
-                case RDITextureFormats.RGBA16F:
+                case RDITextureFormats.RGBA16F, RDITextureFormats.RGBA32F:
                     inputType = RenderContext.FLOAT;
-                case RDITextureFormats.DEPTH: 
-                    //inputType = RenderContext.FLOAT;
-                    throw "[Foo3D - ERROR] - TextureFormats.DEPTH is not supported";
+                case RDITextureFormats.DEPTH:
+                    inputType = RenderContext.FLOAT;
             }
         }
 
@@ -220,12 +218,20 @@ class WebGLRenderDevice extends AbstractRenderDevice
             RenderContext.TEXTURE_2D : (RenderContext.TEXTURE_CUBE_MAP_POSITIVE_X + _slice);
 
         if (_pixels == null) // we wanna upload an empty buffer
-            m_ctx.texImage2D(target, _mipLevel, tex.glFmt, width, height, 0, inputFormat, inputType, null);
+            m_ctx.texImage2D(target, _mipLevel, inputFormat, width, height, 0, inputFormat, inputType, null);
         else
-            if (tex.isCompressed == true)
-                m_ctx.compressedTexImage2D(target, _mipLevel, inputFormat, width, height, 0, new js.html.Uint8Array(_pixels));
-            else
-                m_ctx.texImage2D(target, _mipLevel, tex.glFmt, width, height, 0, inputFormat, inputType, new js.html.Uint8Array(_pixels));
+            if (tex.isCompressed == true) {
+                if (inputType == RenderContext.FLOAT)
+                    m_ctx.compressedTexImage2D(target, _mipLevel, inputFormat, width, height, 0, new js.html.Float32Array(_pixels));
+                else
+                    m_ctx.compressedTexImage2D(target, _mipLevel, inputFormat, width, height, 0, new js.html.Uint8Array(_pixels));
+            }
+            else {
+                if (inputType == RenderContext.FLOAT)
+                    m_ctx.texImage2D(target, _mipLevel, inputFormat, width, height, 0, inputFormat, inputType, new js.html.Float32Array(_pixels));
+                else
+                    m_ctx.compressedTexImage2D(target, _mipLevel, inputFormat, width, height, 0, new js.html.Uint8Array(_pixels));
+            }
 
         // Note: for cube maps mips are only generated when the side with the highest index is uploaded
         if (tex.genMips && (tex.type != RDITextureTypes.TEXCUBE || _slice == 5)) {
@@ -262,6 +268,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
         if (!success && !m_ctx.isContextLost())
         {
             trace("[Vertex Shader] " + m_ctx.getShaderInfoLog(vs));
+            trace("[Vertex Shader Source] " + _vertexShaderSrc);
             m_ctx.deleteShader(vs);
             return 0;
         }
@@ -273,6 +280,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
         if (!success && !m_ctx.isContextLost())
         {
             trace("[Fragment Shader] " + m_ctx.getShaderInfoLog(fs));
+            trace("[Fragment Shader Source] " + _fragmentShaderSrc);
             m_ctx.deleteShader(vs);
             m_ctx.deleteShader(fs);
             return 0;
@@ -780,15 +788,14 @@ class WebGLRenderDevice extends AbstractRenderDevice
             // Bind index buffer
             if ((mask & ARD.PM_INDEXBUF) == ARD.PM_INDEXBUF)
             {
-                if (m_newIndexBuf != m_curIndexBuf)
-                {
+                //if (m_newIndexBuf != m_curIndexBuf) {
                     if (m_newIndexBuf != 0)
                         m_ctx.bindBuffer(RenderingContext.ELEMENT_ARRAY_BUFFER, m_buffers.getRef(m_newIndexBuf).glObj);
                     else
                         m_ctx.bindBuffer(RenderingContext.ELEMENT_ARRAY_BUFFER, null);
                     
                     m_curIndexBuf = m_newIndexBuf;
-                }
+                //}
                 m_pendingMask &= ~ARD.PM_INDEXBUF;
             }
 
