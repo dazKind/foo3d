@@ -566,6 +566,9 @@ class WebGLRenderDevice extends AbstractRenderDevice
 
         var vl:RDIVertexLayout = m_vertexLayouts[m_newVertLayout - 1];
         var shader:RDIShaderProgram = m_shaders.getRef(m_curShaderId);
+        if (shader == null)
+            return false;
+
         var inputLayout:RDIShaderInputLayout = shader.inputLayouts[m_newVertLayout - 1];
 
         if (!inputLayout.valid)

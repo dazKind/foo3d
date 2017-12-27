@@ -125,6 +125,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
         GL.activeTexture(GL.TEXTURE0+m_lastTexUnit);
         GL.bindTexture(tex.type, tex.glObj);
 
+        // RGBA8
         var inputFormat:Int = GL.RGBA;
         var inputType:Int = GL.UNSIGNED_BYTE;
 
@@ -251,6 +252,8 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
         if (!success)
         {
             trace("[Foo3D - Error] - Linking: " + GL.getProgramInfoLog(prog));
+            trace("vsSrc: " + _vertexShaderSrc);
+            trace("fsSrc: " + _fragmentShaderSrc);
             GL.deleteProgram(prog);
             return 0;
         }
@@ -587,8 +590,10 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
 
         var vl:RDIVertexLayout = m_vertexLayouts[m_newVertLayout - 1];
         var shader:RDIShaderProgram = m_shaders.getRef(m_curShaderId);
-        var inputLayout:RDIShaderInputLayout = shader.inputLayouts[m_newVertLayout - 1];
+        if (shader == null)
+            return false;
 
+        var inputLayout:RDIShaderInputLayout = shader.inputLayouts[m_newVertLayout - 1];
         if (!inputLayout.valid)
             return false;
 
@@ -782,14 +787,14 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
             // Bind index buffer
             if ((mask & ARD.PM_INDEXBUF) == ARD.PM_INDEXBUF)
             {
-                if (m_newIndexBuf != m_curIndexBuf) {
+                //if (m_newIndexBuf != m_curIndexBuf) {
                     if (m_newIndexBuf != 0)
                         GL.bindBuffer(RDIBufferType.INDEX, m_buffers.getRef(m_newIndexBuf).glObj);
                     else
                         GL.bindBuffer(RDIBufferType.INDEX, 0);
                     
                     m_curIndexBuf = m_newIndexBuf;
-                }
+                //}
                 m_pendingMask &= ~ARD.PM_INDEXBUF;
             }
 
