@@ -731,6 +731,15 @@ class AbstractRenderDevice
         return s;
     }
     inline public function getTextureMem():Int { return m_textureMem; }
+    #if !js
+    public function getTextureGLHandle(_handle:Int) { 
+        var res = -1;
+        var tex = m_textures.getRef(_handle);
+        if (tex != null)
+            res = tex.glObj;
+        return res;
+    }
+    #end
 
     //=============================================================================
     // shader programs
@@ -771,7 +780,7 @@ class AbstractRenderDevice
 
         m_curDstFactor = RDIBlendFactors.ONE;
         m_newDstFactor = RDIBlendFactors.ZERO;
-
+        
         m_curCullMode = RDICullModes.NONE;
         m_newCullMode = RDICullModes.BACK;
 
