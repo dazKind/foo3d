@@ -267,7 +267,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
             var vl:RDIVertexLayout = m_vertexLayouts[i];
             var allAttribsFound:Bool = true;
 
-            for (j in 0...16)
+            for (j in 0...m_caps.maxVertAttribs)
                 shader.inputLayouts[i].attribIndices[j] = -1;
 
             for (j in 0...attribCount)
@@ -621,7 +621,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
             }
         }
 
-        for (i in 0...16) {
+        for (i in 0...m_caps.maxVertAttribs) {
             var curBit:Int = 1 << i;
             if ((newVertexAttribMask & curBit) != (m_activeVertexAttribsMask & curBit)) {
                 if ((newVertexAttribMask & curBit) == curBit) {
@@ -812,7 +812,7 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
     }
 
     override public function resetStates():Void {
-        for (i in 0...16)
+        for (i in 0...m_caps.maxVertAttribs)
             GL.disableVertexAttribArray(i);
         super.resetStates();
     }

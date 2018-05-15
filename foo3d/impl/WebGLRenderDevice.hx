@@ -312,7 +312,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
             var vl:RDIVertexLayout = m_vertexLayouts[i];
             var allAttribsFound:Bool = true;
 
-            for (j in 0...16)
+            for (j in 0...m_caps.maxVertAttribs)
                 shader.inputLayouts[i].attribIndices[j] = -1;
 
             for (j in 0...attribCount)
@@ -490,8 +490,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
         m_renBuffers.remove(_handle);
     }
 
-    override public function getRenderBufferTex(_handle:Int, ?_bufIndex:Int=0):Int
-    {
+    override public function getRenderBufferTex(_handle:Int, ?_bufIndex:Int=0):Int {
         var rb = m_renBuffers.getRef(_handle);
         if (_bufIndex < m_caps.maxColorAttachments)
             return rb.colTexs[_bufIndex];
@@ -570,7 +569,6 @@ class WebGLRenderDevice extends AbstractRenderDevice
             return false;
 
         var inputLayout:RDIShaderInputLayout = shader.inputLayouts[m_newVertLayout - 1];
-
         if (!inputLayout.valid)
             return false;
 
@@ -582,6 +580,8 @@ class WebGLRenderDevice extends AbstractRenderDevice
             {
                 var attrib:RDIVertexLayoutAttrib = vl.attribs[i];
                 var vbSlot:RDIVertBufSlot = m_vertBufSlots[attrib.vbSlot];
+                
+                
 
                 m_ctx.bindBuffer(RenderingContext.ARRAY_BUFFER, m_buffers.getRef(vbSlot.vbObj).glObj);
                 m_ctx.vertexAttribPointer(
@@ -603,16 +603,14 @@ class WebGLRenderDevice extends AbstractRenderDevice
             }
         }
 
-        for (i in 0...16)
+        for (i in 0...m_caps.maxVertAttribs)
         {
             var curBit:Int = 1 << i;
             if ((newVertexAttribMask & curBit) != (m_activeVertexAttribsMask & curBit))
-            {
                 if ((newVertexAttribMask & curBit) == curBit)
                     m_ctx.enableVertexAttribArray(i);
                 else
                     m_ctx.disableVertexAttribArray(i);
-            }
         }
         m_activeVertexAttribsMask = newVertexAttribMask;
         
@@ -816,7 +814,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
 
     override public function resetStates():Void
     {
-        for (i in 0...16)
+        for (i in 0...m_caps.maxVertAttribs)
             m_ctx.disableVertexAttribArray(i);
 
         super.resetStates();
