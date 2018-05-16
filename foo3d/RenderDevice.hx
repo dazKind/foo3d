@@ -524,7 +524,7 @@ class RDIPrimType
 }
 
 // =================================================================================================
-
+@:keepSub
 class AbstractRenderDevice
 {
     // Sampler State Access Masks
