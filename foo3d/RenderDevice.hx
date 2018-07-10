@@ -30,7 +30,11 @@ package foo3d;
     typedef IndexBufferData = haxe.io.BytesData;
     typedef PixelData = haxe.io.BytesData;
 
-    typedef RenderDevice = foo3d.impl.OpenGLRenderDevice;
+    #if mobile
+        typedef RenderDevice = foo3d.impl.GLES2RenderDevice;
+    #else
+        typedef RenderDevice = foo3d.impl.OpenGLRenderDevice;
+    #end
 
 #end
 
