@@ -230,7 +230,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
                 if (inputType == RenderContext.FLOAT)
                     m_ctx.texImage2D(target, _mipLevel, inputFormat, width, height, 0, inputFormat, inputType, new js.html.Float32Array(_pixels));
                 else
-                    m_ctx.compressedTexImage2D(target, _mipLevel, inputFormat, width, height, 0, new js.html.Uint8Array(_pixels));
+                    m_ctx.texImage2D(target, _mipLevel, inputFormat, width, height, 0, inputFormat, inputType, new js.html.Uint8Array(_pixels));
             }
 
         // Note: for cube maps mips are only generated when the side with the highest index is uploaded
