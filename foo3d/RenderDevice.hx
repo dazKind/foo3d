@@ -832,6 +832,7 @@ class AbstractRenderDevice
             m_pendingMask |= ARD.PM_VIEWPORT;
         }
     }
+
     public function setScissorRect(_x:Int, _y:Int, _width:Int, _height:Int):Void
     {
         if (_x != m_scX || _y != m_scY || _width != m_scWidth || _height != m_scHeight) {
@@ -840,20 +841,24 @@ class AbstractRenderDevice
             m_pendingMask |= ARD.PM_SCISSOR;
         }
     }
+
     public function setIndexBuffer(_handle:Int):Void
     {
         m_newIndexBuf = _handle;
         m_pendingMask |= ARD.PM_INDEXBUF;
     }
+
     public function setVertexBuffer(_slot:Int, _handle:Int, ?_offset:Int = 0, ?_stride:Int = 0):Void
     {
         m_vertBufSlots[_slot] = new RDIVertBufSlot(_handle, _offset, _stride);
         m_pendingMask |= ARD.PM_VERTLAYOUT;
     }
+
     public function setVertexLayout(_vlObj:Int):Void
     {
         m_newVertLayout = _vlObj;
     }
+
     public function setTexture(_slot:Int, _handle:Int, _samplerState:Int):Void
     {
         var tex = m_texSlots[_slot];
@@ -868,32 +873,72 @@ class AbstractRenderDevice
             m_pendingMask |= ARD.PM_TEXTURES;
         }        
     }
+
     public function setBlendEquation(?_mode:Int=RDIBlendEquationModes.ADD, ?_bufIndex:Int=-1) 
     {
         m_newBlendEq = _mode;
         m_blendEqBuffer = _bufIndex;
         m_pendingMask |= ARD.PM_BLEND_EQ;
     }
+    
     public function setBlendFunc(?_srcFactor:Int=RDIBlendFactors.ONE, ?_dstFactor:Int=RDIBlendFactors.ZERO):Void 
     { 
         m_newSrcFactor = _srcFactor;
         m_newDstFactor = _dstFactor;
         m_pendingMask |= ARD.PM_BLEND;
     }
+    
     public function setCullMode(_mode:Int):Void
     {
         m_newCullMode = _mode;
         m_pendingMask |= ARD.PM_CULLMODE;
     }
+    
     public function setDepthMask(_enable:Bool):Void {
         m_newDepthMask = _enable;
         m_pendingMask |= ARD.PM_DEPTH_MASK;
     }
+    
     public function setDepthFunc(?_mode:Int=RDITestModes.LESS):Void
     {
         m_newDepthTest = _mode;
         m_pendingMask |= ARD.PM_DEPTH_TEST;
     }
+
+    //=============================================================================
+    // Invalidate shadowed state. This is useful if some external shit messed with
+    // the currently bound ogl state!
+    //=============================================================================
+    public function invalidateBlendEquation() {
+        m_curBlendEq = -1;
+        m_pendingMask |= ARD.PM_BLEND_EQ;
+    }
+
+    public function invalidateBlendFunc() {
+        m_curSrcFactor = -1;
+        m_curDstFactor = -1;
+        m_pendingMask |= ARD.PM_BLEND;
+    }
+    
+    public function invalidateCullMode() {
+        m_curCullMode = -1;
+        m_pendingMask |= ARD.PM_CULLMODE;
+    }
+
+    public function invalidateDepthMask() {
+        m_curDepthMask = !m_newDepthMask;
+        m_pendingMask |= ARD.PM_DEPTH_MASK;
+    }
+
+    public function invalidateDepthFunc() {
+        m_depthTestEnabled = false;
+        m_curDepthTest = -1;
+        m_pendingMask |= ARD.PM_DEPTH_TEST;
+    }
+
+    //=============================================================================
+    // Misc
+    //=============================================================================
     inline public function getDeviceCaps():RDIDeviceCaps {
         return m_caps;
     }
