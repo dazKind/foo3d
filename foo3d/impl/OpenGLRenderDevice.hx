@@ -538,14 +538,14 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
                     mask |= GL.DEPTH_BUFFER_BIT | GL.STENCIL_BUFFER_BIT;
                     depthResolved = true;
                 }
-                GL.blitFramebuffer(rb.width, rb.height, mask);
+                GL.blitFramebuffer(rb.width, rb.height, mask, GL.NEAREST);
             }
         }
 
         if (!depthResolved && rb.depthBufObj != null && rb.depthBufObj != 0) {
             GL.readBuffer(GL.NONE);
             GL.drawBuffer(GL.NONE);
-            GL.blitFramebuffer(rb.width, rb.height, GL.DEPTH_BUFFER_BIT | GL.STENCIL_BUFFER_BIT);
+            GL.blitFramebuffer(rb.width, rb.height, GL.DEPTH_BUFFER_BIT | GL.STENCIL_BUFFER_BIT, GL.NEAREST);
         }
 
         GL.bindFramebuffer(GL.READ_FRAMEBUFFER, 0);
@@ -1199,8 +1199,8 @@ extern class GL {
         untyped __cpp__("glDeleteFramebuffers(1, &{0})", tmp);
     }
 
-    inline public static function blitFramebuffer(_width:Int, _height:Int, _mask:Int):Void 
-        untyped __cpp__("glBlitFramebuffer(0,0,{0},{1},0,0,{0},{1},{2},GL_NEAREST)", _width, _height, _mask);
+    inline public static function blitFramebuffer(_width:Int, _height:Int, _mask:Int, _filter:Int):Void 
+        untyped __cpp__("glBlitFramebuffer(0,0,{0},{1},0,0,{0},{1},{2},{3})", _width, _height, _mask, _filter);
 
     @:native("glViewport")
     public static function viewport(_x:Int, _y:Int, _width:Int, _height:Int):Void;
