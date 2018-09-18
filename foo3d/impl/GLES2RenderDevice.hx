@@ -382,7 +382,7 @@ class GLES2RenderDevice extends AbstractRenderDevice {
                 rb.colTexs[j] = texObj;
                 var tex:RDITexture = m_textures.getRef(texObj);
                 // attach to framebuffer
-                GL.bindTexture(RDITextureTypes.TEX2D, 0);
+                //GL.bindTexture(RDITextureTypes.TEX2D, 0);
                 GL.framebufferTexture2D(GL.COLOR_ATTACHMENT0+j, tex.glObj);
             }
         }
