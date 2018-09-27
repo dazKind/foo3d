@@ -275,6 +275,12 @@ class RDITexture
     public var hasMips:Bool;
     public var genMips:Bool;
     public var isCompressed:Bool;
+
+    // Packing and Alignment
+    // See https://www.opengl.org/archives/resources/features/KilgardTechniques/oglpitfall/
+    // "7. Watch Your Pixel Store Alignment" for details
+    public var packAlignment:Int;
+    public var rowLength:Int;
     
     public function new()
     {
@@ -289,6 +295,8 @@ class RDITexture
         hasMips = false;
         genMips = false;
         isCompressed = false;
+        packAlignment = 4;
+        rowLength = 0;
     }
 }
 
@@ -735,6 +743,8 @@ class AbstractRenderDevice
         return s;
     }
     inline public function getTextureMem():Int { return m_textureMem; }
+    public function getTexture(_handle:Int):RDITexture { return m_textures.getRef(_handle); }
+    
     #if !js
     public function getTextureGLHandle(_handle:Int) { 
         var res = -1;

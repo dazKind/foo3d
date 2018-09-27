@@ -189,8 +189,17 @@ class GLES2RenderDevice extends AbstractRenderDevice {
         } else {
             if (tex.isCompressed == true)
                 GL.compressedTexImage2D(target, _mipLevel, inputFormat, width, height, 0, _imageSize, _pixels);
-            else
-                GL.texImage2D(target, _mipLevel, inputFormat, width, height, 0, inputFormat, inputType, _pixels);
+            else {
+                if (tex.rowLength > 0 && tex.width != tex.rowLength) {
+                    // Since GLES2 doesn't have GL_UNPACK_ROW_LENGTH upload one row at a time.
+                    var pointerOffset = 0;
+                    for (row in 0...tex.height) {
+                        pointerOffset = row * tex.rowLength;
+                        GL.texSubImage2D(target, 0, 0, row, width, 1, inputFormat, inputType, pointerOffset, _pixels);
+                    }
+                } else
+                    GL.texImage2D(target, _mipLevel, inputFormat, width, height, 0, inputFormat, inputType, _pixels);
+            }
         }
 
         // Note: for cube maps mips are only generated when the side with the highest index is uploaded
@@ -202,7 +211,7 @@ class GLES2RenderDevice extends AbstractRenderDevice {
         if (m_texSlots[m_lastTexUnit].texObj > 0)
         {
             var t:RDITexture = m_textures.getRef(m_texSlots[m_lastTexUnit].texObj);
-           GL.bindTexture(t.type, t.glObj);
+            GL.bindTexture(t.type, t.glObj);
         }
     }
 
@@ -528,7 +537,7 @@ class GLES2RenderDevice extends AbstractRenderDevice {
 
     override function applySamplerState(_tex:RDITexture):Void {
         var state = _tex.samplerState;
-        var target = _tex.type;       
+        var target = _tex.type;
 
         if (_tex.hasMips)
             GL.texParameteri(target, GL.TEXTURE_MIN_FILTER, minFiltersMips[(state & AbstractRenderDevice.SS_FILTER_MASK) >> AbstractRenderDevice.SS_FILTER_START]);
@@ -836,6 +845,9 @@ extern class GL {
     @:native("glTexParameteri")
     public static function texParameteri(_target:Int, _pname:Int, _param:Int):Void;
 
+    @:native("glPixelStorei")
+    public static function pixelStorei(_pname:Int, _param:Int):Void;
+
     @:native("glClearDepthf")
     public static function clearDepth(_depth:Float):Void;
 
@@ -856,6 +868,18 @@ extern class GL {
         untyped __cpp__("glTexImage2D({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}==null()?NULL:(const void*)&({8}[0]))", 
             _target, _mipLevel, _format, _width, _height, _border, _inputFormat, _inputType, tmp);
     }
+
+    inline public static function texSubImage2D(
+        _target:Int, _mipLevel:Int, 
+        _xoffset:Int, _yoffset:Int,
+        _width:Int, _height:Int,
+        _inputFormat:Int, _inputType:Int,
+        _dataOffset:Int, _data:BytesData):Void {
+        var tmp = _data;
+        untyped __cpp__("glTexSubImage2D({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {9}==null()?NULL:(const void*)&({9}[{8}]))", 
+            _target, _mipLevel, _xoffset, _yoffset, _width, _height, _inputFormat, _inputType, _dataOffset, tmp);
+    }
+
 
     inline public static function compressedTexImage2D(_target:Int, _mipLevel:Int, _format:Int, _width:Int, _height:Int, _border:Int, _imageSize:Int, _data:BytesData):Void {
         var tmp = _data;
@@ -1208,4 +1232,10 @@ extern class GL {
 
     inline public static var R8_EXT:Int = 0x8229;
     inline public static var RG8_EXT:Int = 0x822B;
+
+    inline public static var PACK_ROW_LENGTH = 0x0D02;
+    inline public static var PACK_ALIGNMENT = 0x0D05;
+
+    inline public static var UNPACK_ROW_LENGTH = 0x0CF2;
+    inline public static var UNPACK_ALIGNMENT = 0x0CF5;
 }
