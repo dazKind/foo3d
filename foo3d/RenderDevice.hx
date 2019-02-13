@@ -30,11 +30,15 @@ package foo3d;
     typedef IndexBufferData = haxe.io.BytesData;
     typedef PixelData = haxe.io.BytesData;
 
-    #if mobile
-        typedef RenderDevice = foo3d.impl.GLES2RenderDevice;
-    #else
-        typedef RenderDevice = foo3d.impl.OpenGLRenderDevice;
-    #end
+    //#if ios
+        //typedef RenderDevice = foo3d.impl.GLES3RenderDevice;
+    //#else
+        #if mobile
+            typedef RenderDevice = foo3d.impl.GLES2RenderDevice;
+        #else
+            typedef RenderDevice = foo3d.impl.OpenGLRenderDevice;
+        #end
+    //#end
 
 #end
 
@@ -253,6 +257,7 @@ class RDITextureFormats
     inline public static var RGBA16:Int = 0x805B;
     inline public static var RGBA16F:Int = 0x881A;
     inline public static var RGBA32F:Int = 0x8814;
+    inline public static var RGBA32I:Int = 0x8D82;
     inline public static var R16F:Int = 0x822D;
     inline public static var R16UI:Int = 0x8234;
     inline public static var DEPTH:Int = 0x81A6;

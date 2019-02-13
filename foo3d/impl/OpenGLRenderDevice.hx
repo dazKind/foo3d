@@ -370,8 +370,8 @@ class OpenGLRenderDevice extends AbstractRenderDevice {
         if (m_caps.rtMultisampling)
         	maxSamples = GL.getIntegerv(GL.MAX_SAMPLES);
         if (_samples > maxSamples) {
-        	_samples = maxSamples;
-        	trace("[Foo3D - WARNING] - GPU doesnt support desired multisampling quality for rendertarget!");
+            trace("[Foo3D - WARNING] - GPU doesnt support desired multisampling quality(" + _samples + ") for rendertarget!");
+            _samples = maxSamples;
         }
         
         var rb:RDIRenderBuffer = new RDIRenderBuffer(_numColBufs);

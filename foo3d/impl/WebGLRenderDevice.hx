@@ -418,6 +418,9 @@ class WebGLRenderDevice extends AbstractRenderDevice
         if (_format == RDITextureFormats.RGBA16F || _numColBufs > m_caps.maxColorAttachments)
             return 0;
 
+        if (_numColBufs > m_caps.maxColorAttachments)
+            return 0;
+
         var rb:RDIRenderBuffer = new RDIRenderBuffer(_numColBufs);
         rb.width = _width;
         rb.height = _height;

@@ -7,9 +7,11 @@
     #include <GLES2/gl2ext.h>
 	#define FOO3D_GLES 1
 #elif defined(IPHONE) || defined(__IPHONEOS__) || defined(APPLETVOS) || defined(APPLETVSIM)
+    //#include <OpenGLES/ES3/gl.h>
+    //#include <OpenGLES/ES3/glext.h>
     #include <OpenGLES/ES2/gl.h>
     #include <OpenGLES/ES2/glext.h>
-	#define FOO3D_GLES 1
+    #define FOO3D_GLES 1
 #else
     #include <GL/glew.h>
 #endif
@@ -25,6 +27,14 @@ namespace foo3d {
 	        GL_COLOR_ATTACHMENT8, GL_COLOR_ATTACHMENT9, GL_COLOR_ATTACHMENT10, GL_COLOR_ATTACHMENT11,  
 	        GL_COLOR_ATTACHMENT12, GL_COLOR_ATTACHMENT13, GL_COLOR_ATTACHMENT14, GL_COLOR_ATTACHMENT15  
 	    #endif
+    };
+
+    const unsigned int buffer_none[] = {
+        GL_NONE,
+    };
+
+    const unsigned int buffer_back[] = {
+        GL_BACK,
     };
 }
 
