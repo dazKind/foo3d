@@ -904,8 +904,10 @@ extern class GL {
     @:native("glCompileShader")
     public static function compileShader(_handle:Int):Void;
 
-    inline public static function shaderSource(_handle:Int, _src:String):Void
-        untyped __cpp__("glShaderSource({0}, 1, (const char**)&{1}, NULL)", _handle, cpp.NativeString.c_str(_src));
+    inline public static function shaderSource(_handle:Int, _src:String):Void {
+        var cstr = cpp.NativeString.c_str(_src);
+        untyped __cpp__("glShaderSource({0}, 1, (const char**)&{1}, NULL)", _handle, cstr);
+    }
 
     inline public static function getShaderiv(_handle:Int, _pname:Int):Int {
         var tmp:cpp.Int32 = 0;
