@@ -5,10 +5,11 @@ import foo3d.RenderDevice;
 #if js
 
 import js.html.webgl.RenderingContext;
-import js.html.Float32Array;
-import js.html.Uint8Array;
-import js.html.Uint16Array;
-import js.html.ArrayBuffer;
+import js.lib.Float32Array;
+import js.lib.Uint8Array;
+import js.lib.Uint8ClampedArray;
+import js.lib.Uint16Array;
+import js.lib.ArrayBuffer;
 import js.html.webgl.Shader;
 import js.html.webgl.Program;
 import js.html.webgl.ActiveInfo;
@@ -222,15 +223,15 @@ class WebGLRenderDevice extends AbstractRenderDevice
         else
             if (tex.isCompressed == true) {
                 if (inputType == RenderContext.FLOAT)
-                    m_ctx.compressedTexImage2D(target, _mipLevel, inputFormat, width, height, 0, new js.html.Float32Array(_pixels));
+                    m_ctx.compressedTexImage2D(target, _mipLevel, inputFormat, width, height, 0, new Float32Array(_pixels));
                 else
-                    m_ctx.compressedTexImage2D(target, _mipLevel, inputFormat, width, height, 0, new js.html.Uint8Array(_pixels));
+                    m_ctx.compressedTexImage2D(target, _mipLevel, inputFormat, width, height, 0, new Uint8Array(_pixels));
             }
             else {
                 if (inputType == RenderContext.FLOAT)
-                    m_ctx.texImage2D(target, _mipLevel, inputFormat, width, height, 0, inputFormat, inputType, new js.html.Float32Array(_pixels));
+                    m_ctx.texImage2D(target, _mipLevel, inputFormat, width, height, 0, inputFormat, inputType, new Float32Array(_pixels));
                 else
-                    m_ctx.texImage2D(target, _mipLevel, inputFormat, width, height, 0, inputFormat, inputType, new js.html.Uint8Array(_pixels));
+                    m_ctx.texImage2D(target, _mipLevel, inputFormat, width, height, 0, inputFormat, inputType, new Uint8Array(_pixels));
             }
 
         // Note: for cube maps mips are only generated when the side with the highest index is uploaded
@@ -556,7 +557,7 @@ class WebGLRenderDevice extends AbstractRenderDevice
         }
 
         m_ctx.finish();
-        res.data = cast new js.html.Uint8ClampedArray(w * h);
+        res.data = cast new Uint8ClampedArray(w * h);
         m_ctx.readPixels(x, y, w, h, format, type, cast res.data);
         return res;
     }
